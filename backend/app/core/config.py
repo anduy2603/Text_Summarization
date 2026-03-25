@@ -9,6 +9,14 @@ class Settings(BaseSettings):
     api_host: str = "127.0.0.1"
     api_port: int = 8000
 
+    # Input subsystem (Phase 2)
+    input_max_file_bytes: int = 10 * 1024 * 1024
+    input_allowed_extensions: str = ".txt,.docx,.pdf"
+    input_url_timeout_sec: float = 20.0
+    input_url_max_bytes: int = 5 * 1024 * 1024
+    input_url_user_agent: str = "VietSumInputBot/0.1 (+local dev)"
+    input_url_allow_private_hosts: bool = False
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
