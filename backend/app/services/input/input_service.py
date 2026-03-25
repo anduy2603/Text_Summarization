@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from pathlib import PurePath
 
+from app.core.config import settings
 from app.services.input import cleaner, normalizer, sentence_splitter
-from app.services.input.exceptions import InputLoadError, InputValidationError
+from app.services.input.exceptions import InputValidationError
 from app.services.input.loaders import load_docx_bytes, load_pdf_bytes, load_txt_bytes, load_url_text
 from app.services.input.validator import validate_file_size, validate_filename, validate_non_empty_text
 from app.schemas.input import ProcessedInput, SourceType
@@ -14,10 +15,20 @@ def _run_text_pipeline(raw: str, source_type: SourceType, extra_meta: dict | Non
     normalized = normalizer.normalize_text(cleaned)
     if not normalized:
         raise InputValidationError("No text content after cleaning.")
+    n_len = len(normalized)
+    if n_len < settings.input_min_text_chars:
+        raise InputValidationError(
+            f"Text too short (min {settings.input_min_text_chars} characters)."
+        )
+    if n_len > settings.input_max_text_chars:
+        raise InputValidationError(
+            f"Text too long (max {settings.input_max_text_chars} characters)."
+        )
     sents = sentence_splitter.split_sentences(normalized)
     meta = {
         "raw_char_length": len(raw),
-        "cleaned_char_length": len(normalized),
+        "cleaned_char_length": len(cleaned),
+        "normalized_char_length": len(normalized),
         "sentence_count": len(sents),
         **(extra_meta or {}),
     }

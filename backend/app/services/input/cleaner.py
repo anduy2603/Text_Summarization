@@ -14,8 +14,20 @@ def clean_text(text: str) -> str:
     t = _ZW_RE.sub("", t)
     t = _CTRL_RE.sub("", t)
     t = t.replace("\xa0", " ")
+    t = t.replace("\r\n", "\n").replace("\r", "\n")
+
     lines = [ln.strip() for ln in t.splitlines()]
-    t = "\n".join(line for line in lines if line)
-    t = re.sub(r"[ \t]{2,}", " ", t)
+    cleaned_lines: list[str] = []
+    blank_run = 0
+    for line in lines:
+        if not line:
+            blank_run += 1
+            if blank_run <= 1:
+                cleaned_lines.append("")
+            continue
+        blank_run = 0
+        cleaned_lines.append(re.sub(r"[ \t]{2,}", " ", line))
+
+    t = "\n".join(cleaned_lines)
     t = re.sub(r"\n{3,}", "\n\n", t)
     return t.strip()
