@@ -1,3 +1,5 @@
+from functools import cached_property
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -16,6 +18,16 @@ class Settings(BaseSettings):
     input_url_max_bytes: int = 5 * 1024 * 1024
     input_url_user_agent: str = "VietSumInputBot/0.1 (+local dev)"
     input_url_allow_private_hosts: bool = False
+    input_min_text_chars: int = 1
+    input_max_text_chars: int = 1_000_000
+
+    @cached_property
+    def input_allowed_extensions_set(self) -> set[str]:
+        return {
+            ext.strip().lower()
+            for ext in self.input_allowed_extensions.split(",")
+            if ext.strip()
+        }
 
     model_config = SettingsConfigDict(
         env_file=".env",

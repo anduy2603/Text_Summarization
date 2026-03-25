@@ -11,6 +11,10 @@ def load_txt_bytes(content: bytes) -> str:
     detected = chardet.detect(content)
     encoding = (detected.get("encoding") or "utf-8").lower()
     try:
-        return content.decode(encoding, errors="replace")
+        text = content.decode(encoding, errors="replace")
     except LookupError:
-        return content.decode("utf-8", errors="replace")
+        text = content.decode("utf-8", errors="replace")
+    text = text.replace("\r\n", "\n").replace("\r", "\n").strip()
+    if not text:
+        raise InputLoadError("TXT contains no extractable text.")
+    return text

@@ -23,7 +23,7 @@ def load_docx_bytes(content: bytes) -> str:
         for row in table.rows:
             cells = [c.text.strip() for c in row.cells if c.text and c.text.strip()]
             if cells:
-                parts.append(" ".join(cells))
+                parts.append(" | ".join(cells))
     text = "\n".join(parts).strip()
     if not text:
         raise InputLoadError("DOCX contains no extractable text.")

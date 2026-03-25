@@ -11,8 +11,7 @@ from app.services.input.exceptions import InputValidationError
 
 
 def _allowed_extensions() -> set[str]:
-    raw = settings.input_allowed_extensions
-    return {ext.strip().lower() for ext in raw.split(",") if ext.strip()}
+    return settings.input_allowed_extensions_set
 
 
 def validate_filename(filename: str | None) -> str:
