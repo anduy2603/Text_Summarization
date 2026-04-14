@@ -1,0 +1,18 @@
+{
+  "created_at": "20260415_023921",
+  "source": "local:C:\\Users\\OS\\OneDrive\\Desktop\\Text_Summarization\\data\\raw\\vietnews\\train.jsonl",
+  "min_chars": 1200,
+  "top_ks": [
+    2,
+    3,
+    4,
+    5
+  ],
+  "doc_count": 120,
+  "best_top_k": 2,
+  "rouge1_mean": 0.48146149690639317,
+  "rouge2_mean": 0.13844376746823348,
+  "rougeL_mean": 0.2749671921300274,
+  "detail_csv": "results\\tfidf_phase1_topk_detail_20260415_023921.csv",
+  "summary_csv": "results\\tfidf_phase1_topk_summary_20260415_023921.csv"
+}
