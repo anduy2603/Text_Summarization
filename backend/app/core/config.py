@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     input_min_text_chars: int = 1
     input_max_text_chars: int = 1_000_000
 
+    # Summarization subsystem (Phase 3)
+    summary_engine: str = "tfidf"
+
     @cached_property
     def input_allowed_extensions_set(self) -> set[str]:
         return {

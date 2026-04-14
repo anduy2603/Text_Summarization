@@ -76,3 +76,6 @@ temp/
 
 # Models / HF cache (nếu tải model cục bộ — chỉnh lại nếu cần cache chung)
 # .cache/huggingface/
+
+# Data
+data/

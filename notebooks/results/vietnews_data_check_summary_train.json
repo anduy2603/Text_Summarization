@@ -1,0 +1,33 @@
+{
+  "source_file": "..\\data\\raw\\vietnews\\train.jsonl",
+  "target_split": "train",
+  "rows_loaded": 20000,
+  "columns": [
+    "guid",
+    "title",
+    "abstract",
+    "article",
+    "title_chars",
+    "title_tokens",
+    "article_chars",
+    "article_tokens",
+    "article_sents",
+    "abstract_chars",
+    "abstract_tokens",
+    "abstract_sents",
+    "compression_ratio_chars",
+    "compression_ratio_sents"
+  ],
+  "title_empty_ratio": 0.0,
+  "article_empty_ratio": 0.0,
+  "abstract_empty_ratio": 0.0,
+  "dup_guid": 0,
+  "dup_title": 6,
+  "dup_article": 0,
+  "compression_ratio_chars_mean": 0.09061257556585604,
+  "compression_ratio_chars_p50": 0.08194528919763232,
+  "compression_ratio_chars_p90": 0.1488299952028003,
+  "compression_ratio_sents_mean": 0.08788697724789715,
+  "compression_ratio_sents_p50": 0.07692307692307693,
+  "compression_ratio_sents_p90": 0.14285714285714285
+}

@@ -1,0 +1,21 @@
+{
+  "source_file": "..\\data\\raw\\vietnews\\train.jsonl",
+  "rows_loaded": 20000,
+  "columns": [
+    "guid",
+    "title",
+    "abstract",
+    "article",
+    "title_chars",
+    "title_tokens",
+    "article_chars",
+    "article_tokens",
+    "article_sents",
+    "abstract_chars",
+    "abstract_tokens",
+    "abstract_sents"
+  ],
+  "title_empty_ratio": 0.0,
+  "article_empty_ratio": 0.0,
+  "abstract_empty_ratio": 0.0
+}

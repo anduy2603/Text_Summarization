@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 
-from app.core.logging_config import get_logger
+from app.core.logger import get_logger
 
 _logger = get_logger(__name__)
 

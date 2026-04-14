@@ -7,7 +7,7 @@ from urllib.request import urlopen
 from bs4 import BeautifulSoup
 
 from app.core.config import settings
-from app.core.logging_config import get_logger
+from app.core.logger import get_logger
 from app.services.input.exceptions import InputLoadError, InputValidationError
 from app.services.input.validator import build_url_request, validate_url
 
