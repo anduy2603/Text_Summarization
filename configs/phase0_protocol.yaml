@@ -1,0 +1,57 @@
+# Phase 0 — frozen experimental protocol (VietNews, thesis Text_Summarization)
+# Version bump when any rule below changes; re-run prepare_dataset + eval baselines.
+
+protocol_id: phase0_v1
+dataset:
+  name: VietNews
+  primary_splits:
+    - train
+    - validation
+    - test
+  # Raw files expected under data/raw/vietnews/ (see data/raw/vietnews/README.md)
+  raw_filenames:
+    train: train.jsonl
+    validation: validation.jsonl
+    test: test.jsonl
+
+preprocessing:
+  # Same order as backend: cleaner → normalizer → sentence_splitter (for metrics/counts).
+  steps:
+    - clean_text
+    - normalize_whitespace  # normalizer.normalize_text (NFC + strip)
+    - sentence_splitting    # underthesea sent_tokenize with regex fallback
+  implementation: backend.app.services.input  # single source of truth
+
+output_length:
+  extractive:
+    # Use one strategy per run; report which in experiment metadata.
+    modes:
+      - name: top_k
+        description: Select k sentences (maps to API max_sentences).
+      - name: ratio
+        description: Target k = max(1, round(ratio * sentence_count)).
+    default_top_k: 3
+    default_ratio: null
+  abstractive_or_llm:
+    # Target cap for generated summary (fair cross-method comparison).
+    max_target_chars: 512
+    max_target_tokens: null  # set when tokenizer fixed for a model
+
+metrics:
+  rouge:
+    variants: [rouge1, rouge2, rougeL]
+    use_stemmer: false
+    tokenizer: default  # rouge-score default (whitespace / scorer internal)
+  latency:
+    unit: seconds
+    description: Wall-clock per example or batch; report mean/p95 as needed.
+  compression_ratio:
+    definition: len_generated_summary_chars / len_source_article_chars
+    note: Source = preprocessed article text used as model input.
+  repetition_rate:
+    definition: bigram_repetition
+    note: 1 - (unique_bigrams / total_bigrams) on generated summary; 0 if too short.
+
+reproducibility:
+  default_seed: 42
+  # Subset sampling (optional): shuffle indices with default_seed then take head N.

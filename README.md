@@ -1,5 +1,16 @@
 # Text_Summarization
 
+## Phase 0 — Frozen experiment protocol
+
+Phase 0 fixes dataset splits, preprocessing, output-length rules, metrics, and seeds so later methods stay comparable.
+
+- **Protocol file:** `configs/phase0_protocol.yaml`
+- **Raw VietNews:** `data/raw/vietnews/` (see `data/raw/vietnews/README.md`; large files stay gitignored)
+- **Prepare processed JSONL + manifest:** `python scripts/prepare_dataset.py` (writes `data/processed/vietnews/` and `dataset_manifest.json`)
+- **Download from Hugging Face (optional):** `python scripts/download_vietnews.py`
+- **Metrics implementation:** `evaluation/evaluator.py` (ROUGE-1/2/L, latency, compression ratio, bigram repetition rate)
+- **Notebook:** `notebooks/01_vietnews_data_check.ipynb`
+
 ## Phase 1 Baseline (Extractive TF-IDF)
 
 This section records the completed Phase 1 baseline for the thesis pipeline.
