@@ -1,0 +1,20 @@
+{
+  "split": "validation",
+  "limit": 200,
+  "top_k_candidates": [
+    2,
+    3,
+    4
+  ],
+  "best_by_rouge1_then_rougeL": {
+    "top_k": 2.0,
+    "n": 200.0,
+    "rouge1_f": 0.491332854624028,
+    "rouge2_f": 0.15089909984544106,
+    "rougeL_f": 0.28018817359373843,
+    "latency_sec": 0.00040567149997514204,
+    "compression_ratio": 0.12728820439572475
+  },
+  "summary_csv": "c:\\Users\\OS\\OneDrive\\Desktop\\Text_Summarization\\notebooks\\results\\tfidf_phase1_topk_summary_20260423_012110.csv",
+  "detail_csv": "c:\\Users\\OS\\OneDrive\\Desktop\\Text_Summarization\\notebooks\\results\\tfidf_phase1_topk_detail_20260423_012110.csv"
+}
