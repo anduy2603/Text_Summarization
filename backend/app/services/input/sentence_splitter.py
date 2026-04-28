@@ -2,24 +2,15 @@ from __future__ import annotations
 
 import re
 
-from app.core.logger import get_logger
-
-_logger = get_logger(__name__)
+_SENTENCE_BOUNDARY_RE = re.compile(r"(?<=[.!?…])\s+|\n{2,}")
 
 
 def split_sentences(text: str) -> list[str]:
+    """
+    Regex-only sentence splitting for Phase 0/1 reproducibility.
+    This avoids environment-dependent drift caused by optional tokenizers.
+    """
     if not text or not text.strip():
         return []
-    try:
-        from underthesea import sent_tokenize
-
-        sents = sent_tokenize(text)
-        if sents:
-            return [s.strip() for s in sents if s.strip()]
-    except Exception as exc:
-        _logger.warning(
-            "underthesea sent_tokenize failed, using regex fallback: %s",
-            exc,
-        )
-    parts = re.split(r"(?<=[.!?…])\s+|\n{2,}", text)
-    return [p.strip() for p in parts if p.strip()]
+    parts = _SENTENCE_BOUNDARY_RE.split(text)
+    return [part.strip() for part in parts if part.strip()]

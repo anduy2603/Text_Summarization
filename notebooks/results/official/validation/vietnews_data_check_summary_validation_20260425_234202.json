@@ -1,0 +1,245 @@
+{
+  "report_schema_version": "vietnews_data_qa_v2",
+  "notebook": "01_vietnews_data_check.ipynb",
+  "run_purpose": "official_thesis_data_qa",
+  "target_split": "validation",
+  "rows": 22184,
+  "timestamp": "20260425_234202",
+  "protocol_version": "phase0_v2",
+  "manifest_path": "C:\\Users\\OS\\OneDrive\\Desktop\\Text_Summarization\\data\\processed\\vietnews\\dataset_manifest.json",
+  "manifest_global_stats": {
+    "total_raw_rows": 143816,
+    "total_subset_rows": 143816,
+    "total_written_rows": 143816,
+    "total_json_decode_errors": 0,
+    "total_dropped_empty_article": 0,
+    "total_dropped_empty_reference_summary": 0,
+    "mean_article_char_len": 2291.754964677087,
+    "mean_reference_summary_char_len": 157.76907993547312,
+    "mean_article_sentence_count": 18.045488679979975,
+    "mean_reference_summary_sentence_count": 1.257287089058241
+  },
+  "manifest_split_stats": {
+    "source_file": "C:\\Users\\OS\\OneDrive\\Desktop\\Text_Summarization\\data\\raw\\vietnews\\validation.jsonl",
+    "output_file": "C:\\Users\\OS\\OneDrive\\Desktop\\Text_Summarization\\data\\processed\\vietnews\\validation.jsonl",
+    "raw_rows": 22184,
+    "subset_rows": 22184,
+    "written_rows": 22184,
+    "dropped_empty_article": 0,
+    "dropped_empty_reference_summary": 0,
+    "json_decode_errors": 0,
+    "limit": null,
+    "subset_seed": 244
+  },
+  "environment": {
+    "python_version": "3.10.20",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "pandas_version": "2.3.3",
+    "numpy_version": "2.2.6",
+    "matplotlib_version": "3.10.8",
+    "git_commit": "c5f2468d3b654fd7e944f9edf35afe1d504e936c",
+    "git_dirty": true
+  },
+  "config_snapshot": {
+    "notebook_schema_version": "vietnews_data_qa_v2",
+    "protocol_version_expected": "phase0_v2",
+    "target_split": "validation",
+    "seed": 42,
+    "preprocess_check_n": 500,
+    "sample_n": 5,
+    "pass_empty_ratio_threshold": 0.001,
+    "acceptable_sentence_mismatch_rate_threshold": 0.01
+  },
+  "schema": [
+    {
+      "column": "guid",
+      "dtype": "int64",
+      "null_count": 0,
+      "empty_count": 0,
+      "empty_ratio": 0.0
+    },
+    {
+      "column": "title",
+      "dtype": "object",
+      "null_count": 0,
+      "empty_count": 0,
+      "empty_ratio": 0.0
+    },
+    {
+      "column": "article",
+      "dtype": "object",
+      "null_count": 0,
+      "empty_count": 0,
+      "empty_ratio": 0.0
+    },
+    {
+      "column": "reference_summary",
+      "dtype": "object",
+      "null_count": 0,
+      "empty_count": 0,
+      "empty_ratio": 0.0
+    },
+    {
+      "column": "meta",
+      "dtype": "object",
+      "null_count": 0,
+      "empty_count": 0,
+      "empty_ratio": 0.0
+    }
+  ],
+  "meta_schema": [
+    {
+      "meta_key": "protocol_version",
+      "present_ratio": 1.0
+    },
+    {
+      "meta_key": "article_char_len",
+      "present_ratio": 1.0
+    },
+    {
+      "meta_key": "reference_summary_char_len",
+      "present_ratio": 1.0
+    },
+    {
+      "meta_key": "article_sentence_count",
+      "present_ratio": 1.0
+    },
+    {
+      "meta_key": "reference_summary_sentence_count",
+      "present_ratio": 1.0
+    }
+  ],
+  "pass_conditions": {
+    "required_columns_present": true,
+    "meta_key_coverage_is_100_percent": true,
+    "article_empty_ratio_near_zero": true,
+    "reference_summary_empty_ratio_near_zero": true
+  },
+  "official_export_gate": true,
+  "length_stats": [
+    {
+      "metric": "article_char_len",
+      "mean": 2304.53691849982,
+      "p50": 1986.0,
+      "p90": 4020.0,
+      "p95": 4635.0,
+      "max": 11439.0
+    },
+    {
+      "metric": "reference_char_len",
+      "mean": 158.5122610890732,
+      "p50": 149.0,
+      "p90": 217.0,
+      "p95": 238.0,
+      "max": 628.0
+    },
+    {
+      "metric": "article_token_count",
+      "mean": 418.65182113234766,
+      "p50": 360.0,
+      "p90": 735.0,
+      "p95": 843.8499999999985,
+      "max": 1875.0
+    },
+    {
+      "metric": "reference_token_count",
+      "mean": 28.47115037865128,
+      "p50": 27.0,
+      "p90": 40.0,
+      "p95": 44.0,
+      "max": 108.0
+    }
+  ],
+  "sentence_stats": [
+    {
+      "metric": "article_sentence_count",
+      "mean": 18.16692210602236,
+      "p50": 16.0,
+      "p90": 32.0,
+      "p95": 37.0,
+      "max": 97.0
+    },
+    {
+      "metric": "reference_sentence_count",
+      "mean": 1.2643346556076451,
+      "p50": 1.0,
+      "p90": 2.0,
+      "p95": 2.0,
+      "max": 7.0
+    }
+  ],
+  "compression_stats": [
+    {
+      "metric": "compression_ratio_chars",
+      "mean": 0.08396182899123468,
+      "p50": 0.07611316651905198,
+      "p90": 0.13797730724559992,
+      "min": 0.008297954457738324,
+      "max": 0.5886792452830188
+    },
+    {
+      "metric": "compression_ratio_sentences",
+      "mean": 0.08267640397143777,
+      "p50": 0.07692307692307693,
+      "p90": 0.13636363636363635,
+      "min": 0.013513513513513514,
+      "max": 1.0
+    }
+  ],
+  "preprocess_check": {
+    "sample_size": 500,
+    "manifest_protocol_version": "phase0_v2",
+    "article_char_mismatch": 0,
+    "reference_char_mismatch": 0,
+    "article_sentence_mismatch": 0,
+    "reference_sentence_mismatch": 0,
+    "protocol_version_mismatch": 0
+  },
+  "preprocess_interpretation": {
+    "preprocessing_consistent_strict": true,
+    "acceptable_for_benchmark": true,
+    "sentence_mismatch_rate": 0.0,
+    "possible_cause_if_nonzero": "No sentence-count mismatch detected in the sampled audit set.",
+    "impact_assessment": "Low impact"
+  },
+  "conclusion": {
+    "data_health": {
+      "required_columns_present": true,
+      "meta_key_coverage_is_100_percent": true,
+      "article_empty_ratio": 0.0,
+      "reference_summary_empty_ratio": 0.0,
+      "pass_conditions": {
+        "required_columns_present": true,
+        "meta_key_coverage_is_100_percent": true,
+        "article_empty_ratio_near_zero": true,
+        "reference_summary_empty_ratio_near_zero": true
+      }
+    },
+    "protocol_consistency": {
+      "preprocess_check": {
+        "sample_size": 500,
+        "manifest_protocol_version": "phase0_v2",
+        "article_char_mismatch": 0,
+        "reference_char_mismatch": 0,
+        "article_sentence_mismatch": 0,
+        "reference_sentence_mismatch": 0,
+        "protocol_version_mismatch": 0
+      },
+      "interpretation": {
+        "preprocessing_consistent_strict": true,
+        "acceptable_for_benchmark": true,
+        "sentence_mismatch_rate": 0.0,
+        "possible_cause_if_nonzero": "No sentence-count mismatch detected in the sampled audit set.",
+        "impact_assessment": "Low impact"
+      }
+    },
+    "distribution_summary": {
+      "article_char_len_p50": 1986.0,
+      "article_char_len_p90": 4020.0,
+      "reference_char_len_p50": 149.0,
+      "reference_char_len_p90": 217.0,
+      "compression_ratio_chars_mean": 0.08396182899123468,
+      "compression_ratio_chars_p90": 0.13797730724559992
+    }
+  }
+}

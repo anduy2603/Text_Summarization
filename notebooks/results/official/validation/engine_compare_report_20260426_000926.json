@@ -1,0 +1,77 @@
+{
+  "report_schema_version": "engine_compare_v1",
+  "notebook_or_script": "scripts/benchmark_tfidf_vs_textrank.py",
+  "protocol_version": "phase0_v2",
+  "target_split": "validation",
+  "seed": 42,
+  "engines": [
+    "tfidf",
+    "textrank"
+  ],
+  "top_k_candidates": [
+    2,
+    3,
+    4,
+    5
+  ],
+  "subset_limit": 200,
+  "article_char_threshold": 1200,
+  "subset_rows": 200,
+  "subset_guid_sample": [
+    494,
+    8563,
+    55,
+    11152,
+    5005,
+    10389,
+    7706,
+    3927,
+    14906,
+    10408,
+    14913,
+    14438,
+    1241,
+    19076,
+    13998,
+    4850,
+    19760,
+    2581,
+    5590,
+    14528
+  ],
+  "manifest_path": "C:\\Users\\OS\\OneDrive\\Desktop\\Text_Summarization\\data\\processed\\vietnews\\dataset_manifest.json",
+  "split_path": "C:\\Users\\OS\\OneDrive\\Desktop\\Text_Summarization\\data\\processed\\vietnews\\validation.jsonl",
+  "best_by_engine": {
+    "tfidf": {
+      "top_k": 2,
+      "rouge1_f": 0.4773284952590099,
+      "rouge2_f": 0.14002458274886284,
+      "rougeL_f": 0.2701445692164762,
+      "compression_ratio": 0.1162247958155047,
+      "repetition_rate": 0.010818618758739136,
+      "summarizer_core_latency_sec": 0.00048507349885767325,
+      "weighted_rank_score": 1.6500000000000001
+    },
+    "textrank": {
+      "top_k": 2,
+      "rouge1_f": 0.49813430188724916,
+      "rouge2_f": 0.22358461216448394,
+      "rougeL_f": 0.32049108667498594,
+      "compression_ratio": 0.13973500856940563,
+      "repetition_rate": 0.0989193219892886,
+      "summarizer_core_latency_sec": 0.003678693001129432,
+      "weighted_rank_score": 1.1500000000000001
+    }
+  },
+  "environment": {
+    "python_version": "3.10.20",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "pandas_version": "2.3.3",
+    "rouge_score_version": "0.1.2",
+    "git_commit": "c5f2468d3b654fd7e944f9edf35afe1d504e936c",
+    "git_dirty": true
+  },
+  "selection_method": "weighted_rank",
+  "summary_csv": "C:\\Users\\OS\\OneDrive\\Desktop\\Text_Summarization\\notebooks\\results\\official\\validation\\engine_compare_summary_20260426_000926.csv",
+  "detail_csv": "C:\\Users\\OS\\OneDrive\\Desktop\\Text_Summarization\\notebooks\\results\\official\\validation\\engine_compare_detail_20260426_000926.csv"
+}

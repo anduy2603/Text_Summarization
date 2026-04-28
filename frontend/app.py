@@ -19,12 +19,18 @@ with st.sidebar:
 
 input_text = st.text_area("Input text", height=220, placeholder="Paste Vietnamese text here...")
 max_sentences = st.slider("Max summary sentences", min_value=1, max_value=10, value=3)
+engine = st.selectbox(
+    "Engine",
+    options=["tfidf", "textrank"],
+    index=0,
+    help="Choose extractive engine used by backend.",
+)
 
 if st.button("Summarize"):
     try:
         response = requests.post(
             f"{API_BASE}/summarize",
-            json={"text": input_text, "max_sentences": max_sentences},
+            json={"text": input_text, "max_sentences": max_sentences, "engine": engine},
             timeout=30,
         )
         response.raise_for_status()

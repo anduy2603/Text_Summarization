@@ -13,7 +13,7 @@ from app.services.input.cleaner import clean_text  # noqa: E402
 from app.services.input.normalizer import normalize_text  # noqa: E402
 from app.services.input.sentence_splitter import split_sentences  # noqa: E402
 
-PROTOCOL_PREPROCESS_VERSION = "phase0_v1"
+PROTOCOL_PREPROCESS_VERSION = "phase0_v2"
 
 
 def preprocess_document(text: str | None) -> str:

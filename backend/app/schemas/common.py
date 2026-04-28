@@ -5,10 +5,8 @@ from typing import Any, Optional
 from pydantic import BaseModel, Field
 
 
-SUPPORTED_SUMMARY_ENGINES = ("tfidf",)
+SUPPORTED_SUMMARY_ENGINES = ("tfidf", "textrank", "phobert-extractive")
 PLANNED_SUMMARY_ENGINES = (
-    "textrank",
-    "phobert-extractive",
     "vit5",
     "bartpho",
     "gemini",
@@ -36,7 +34,8 @@ class SummaryControls(BaseModel):
         default=None,
         description=(
             "Optional summarization engine override. "
-            "Currently supported: tfidf. Planned but not ready: textrank, phobert-extractive, vit5, bartpho, gemini."
+            "Currently supported: tfidf, textrank, phobert-extractive. "
+            "Planned but not ready: vit5, bartpho, gemini."
         ),
     )
 

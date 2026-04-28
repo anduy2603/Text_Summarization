@@ -28,7 +28,7 @@ if str(ROOT / "evaluation") not in sys.path:
 
 from preprocess import preprocess_and_split  # type: ignore[import-not-found]  # noqa: E402
 
-PROTOCOL_VERSION = "phase0_v1"
+PROTOCOL_VERSION = "phase0_v2"
 PROTOCOL_CONFIG_PATH = ROOT / "configs" / "phase0_protocol.yaml"
 SPLIT_SEED_OFFSETS = {"train": 101, "validation": 202, "test": 303}
 

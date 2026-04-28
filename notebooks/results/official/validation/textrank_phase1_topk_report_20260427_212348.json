@@ -1,0 +1,36 @@
+{
+  "report_schema_version": "textrank_phase1_benchmark_v1",
+  "notebook_or_script": "scripts/benchmark_tfidf_vs_textrank.py",
+  "protocol_version": "phase0_v2",
+  "target_split": "validation",
+  "seed": 42,
+  "top_k_candidates": [
+    2,
+    3,
+    4,
+    5
+  ],
+  "subset_limit": 200,
+  "article_char_threshold": 1200,
+  "subset_rows": 200,
+  "environment": {
+    "python_version": "3.9.23",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "git_commit": "c5f2468d3b654fd7e944f9edf35afe1d504e936c",
+    "git_dirty": true,
+    "rouge_score_version": "0.1.2",
+    "pandas_version": "2.3.3"
+  },
+  "recommended_top_k_by_weighted_rank": 2,
+  "official_top_k": 2,
+  "official_top_k_rationale": "Locked to weighted-rank winner using the shared extractive protocol (ROUGE-1/2/L, compression_ratio, repetition_rate, latency).",
+  "benchmark_notes": {
+    "latency_label": "summarizer_core_latency_sec",
+    "latency_scope": "Measured around summarize_processed_input_raw(engine='textrank') only",
+    "selection_method": "Weighted rank over ROUGE-1/2/L, compression_ratio, repetition_rate, latency"
+  },
+  "summary_csv": "C:\\Users\\OS\\OneDrive\\Desktop\\Text_Summarization\\notebooks\\results\\official\\validation\\textrank_phase1_topk_summary_20260427_212348.csv",
+  "detail_csv": "C:\\Users\\OS\\OneDrive\\Desktop\\Text_Summarization\\notebooks\\results\\official\\validation\\textrank_phase1_topk_detail_20260427_212348.csv",
+  "manifest_path": "C:\\Users\\OS\\OneDrive\\Desktop\\Text_Summarization\\data\\processed\\vietnews\\dataset_manifest.json",
+  "split_path": "C:\\Users\\OS\\OneDrive\\Desktop\\Text_Summarization\\data\\processed\\vietnews\\validation.jsonl"
+}

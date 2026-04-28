@@ -1,0 +1,84 @@
+{
+  "report_schema_version": "tfidf_phase1_benchmark_v2",
+  "notebook": "02_tfidf_experiment.ipynb",
+  "protocol_version": "phase0_v2",
+  "target_split": "validation",
+  "seed": 42,
+  "bootstrap_samples": 300,
+  "top_k_candidates": [
+    2,
+    3,
+    4,
+    5
+  ],
+  "article_char_threshold": 1200,
+  "subset_limit": 200,
+  "subset_rows": 200,
+  "subset_guid_sample": [
+    494,
+    8563,
+    55,
+    11152,
+    5005,
+    10389,
+    7706,
+    3927,
+    14906,
+    10408,
+    14913,
+    14438,
+    1241,
+    19076,
+    13998,
+    4850,
+    19760,
+    2581,
+    5590,
+    14528
+  ],
+  "environment": {
+    "python_version": "3.10.20",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "pandas_version": "2.3.3",
+    "numpy_version": "2.2.6",
+    "rouge_score_version": "0.1.2",
+    "pydantic_version": "2.12.5",
+    "git_commit": "c5f2468d3b654fd7e944f9edf35afe1d504e936c",
+    "git_dirty": true
+  },
+  "config_snapshot": {
+    "notebook_schema_version": "tfidf_phase1_benchmark_v2",
+    "protocol_version_expected": "phase0_v2",
+    "target_split": "validation",
+    "seed": 42,
+    "bootstrap_samples": 300,
+    "top_k_candidates": [
+      2,
+      3,
+      4,
+      5
+    ],
+    "subset_limit": 200,
+    "article_char_threshold": 1200
+  },
+  "recommended_top_k_by_weighted_rank": 2,
+  "official_top_k": 2,
+  "official_top_k_rationale": "Locked to weighted-rank winner for this official run. Update only when a newer official rerun supersedes this artifact.",
+  "best_by_metric": {
+    "rouge1_f": 2,
+    "rouge2_f": 4,
+    "rougeL_f": 2,
+    "compression_ratio": 2,
+    "repetition_rate": 2,
+    "summarizer_core_latency_sec": 5
+  },
+  "benchmark_notes": {
+    "latency_label": "summarizer_core_latency_sec",
+    "latency_scope": "Measured around summarize_with_tfidf only; excludes process_from_text",
+    "selection_method": "Weighted rank over ROUGE-1/2/L, compression_ratio, repetition_rate, latency"
+  },
+  "summary_csv": "C:\\Users\\OS\\OneDrive\\Desktop\\Text_Summarization\\notebooks\\results\\official\\validation\\tfidf_phase1_topk_summary_20260425_234202.csv",
+  "detail_csv": "C:\\Users\\OS\\OneDrive\\Desktop\\Text_Summarization\\notebooks\\results\\official\\validation\\tfidf_phase1_topk_detail_20260425_234202.csv",
+  "manifest_path": "C:\\Users\\OS\\OneDrive\\Desktop\\Text_Summarization\\data\\processed\\vietnews\\dataset_manifest.json",
+  "split_path": "C:\\Users\\OS\\OneDrive\\Desktop\\Text_Summarization\\data\\processed\\vietnews\\validation.jsonl"
+}

@@ -7,6 +7,10 @@ from app.core.config import settings
 from app.schemas.common import PLANNED_SUMMARY_ENGINES, SUPPORTED_SUMMARY_ENGINES, SummarizeResponse
 from app.schemas.input import ProcessedInput
 from app.services.summarization.formatter import build_summary_response
+from app.services.summarization.phobert_extractive import (
+    PhoBertEngineNotReadyError,
+    summarize_with_phobert_extractive,
+)
 from app.services.summarization.textrank_summarizer import summarize_with_textrank
 from app.services.summarization.tfidf_summarizer import summarize_with_tfidf
 
@@ -24,6 +28,8 @@ class SummaryEngineNotReadyError(RuntimeError):
 def _build_engine_registry() -> dict[str, SummaryEngineFn]:
     return {
         "tfidf": summarize_with_tfidf,
+        "textrank": summarize_with_textrank,
+        "phobert-extractive": summarize_with_phobert_extractive,
     }
 
 
@@ -70,11 +76,16 @@ def summarize_processed_input_raw(
     Returns selected sentences and engine metadata without API formatting.
     """
     resolved_engine_name, engine_fn = resolve_summary_engine(engine_name)
-    selected_sentences, engine_meta = engine_fn(
-        processed.sentences,
-        max_sentences=max_sentences,
-        ratio=ratio,
-    )
+    try:
+        selected_sentences, engine_meta = engine_fn(
+            processed.sentences,
+            max_sentences=max_sentences,
+            ratio=ratio,
+        )
+    except PhoBertEngineNotReadyError as exc:
+        raise SummaryEngineNotReadyError(
+            f"Summary engine 'phobert-extractive' is registered but not ready: {exc}"
+        ) from exc
 
     engine_meta = dict(engine_meta or {})
     engine_meta.setdefault("engine", resolved_engine_name)
