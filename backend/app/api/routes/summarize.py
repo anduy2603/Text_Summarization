@@ -4,6 +4,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 
+from app.core.config import settings
 from app.schemas.common import SummarizeRequest, SummarizeResponse, SummaryControls
 from app.schemas.input import UrlIngestRequest
 from app.services.input import (
@@ -13,7 +14,11 @@ from app.services.input import (
     process_from_text,
     process_from_url,
 )
-from app.services.summarization import summarize_processed_input
+from app.services.summarization import (
+    list_planned_summary_engines,
+    list_supported_summary_engines,
+    summarize_processed_input,
+)
 from app.services.summarization.summary_service import SummaryEngineNotReadyError, UnsupportedSummaryEngineError
 
 router = APIRouter()
@@ -46,6 +51,26 @@ def _summary_controls_from_query(
     ),
 ) -> SummaryControls:
     return SummaryControls(max_sentences=max_sentences, ratio=ratio, engine=engine)
+
+
+@router.get("/engines")
+async def list_engines() -> dict[str, object]:
+    """
+    Capability endpoint for frontend/runtime discovery.
+    Keep this lightweight so clients can refresh available engines at startup.
+    """
+    supported = list_supported_summary_engines()
+    planned = list_planned_summary_engines()
+    preferred = settings.summary_engine.strip().lower()
+    if preferred in supported:
+        default_engine: str | None = preferred
+    else:
+        default_engine = supported[0] if supported else None
+    return {
+        "supported_engines": supported,
+        "planned_engines": planned,
+        "default_engine": default_engine,
+    }
 
 
 @router.post("/summarize", response_model=SummarizeResponse)

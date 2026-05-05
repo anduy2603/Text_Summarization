@@ -1,0 +1,30 @@
+# Keep Cursor AI away from large local datasets, generated artifacts, and caches.
+# Syntax follows .gitignore.
+
+# Secrets / local environment
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+env/
+ENV/
+
+# Large local datasets
+data/
+
+# Generated benchmark/report artifacts
+notebooks/results/
+outputs/
+output/
+models/
+logs/
+*.log
+
+# Runtime / tool caches
+.cache/
+**/__pycache__/
+**/.ipynb_checkpoints/
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/

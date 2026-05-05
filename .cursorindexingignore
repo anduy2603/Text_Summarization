@@ -1,0 +1,16 @@
+# Do not embed notebook JSON/output into Cursor's codebase index.
+# The files remain manually openable and can still be referenced explicitly when needed.
+notebooks/*.ipynb
+notebooks/**/*.ipynb
+
+# Extra guard for generated artifacts and local data.
+data/
+notebooks/results/
+outputs/
+output/
+models/
+logs/
+*.log
+.cache/
+**/__pycache__/
+**/.ipynb_checkpoints/

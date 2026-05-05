@@ -65,7 +65,11 @@ logs/
 *.db
 *.sqlite3
 
-# Streamlit
+# Node / Vite (frontend)
+frontend/node_modules/
+frontend/dist/
+
+# Legacy Streamlit (replaced by React)
 frontend/.streamlit/secrets.toml
 
 # Uploads / temp (phase sau)
