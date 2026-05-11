@@ -54,7 +54,7 @@ def main() -> None:
 
     generated_paths = run_qa_and_tfidf(args.mode, out_dir, args.timestamp)
     if args.mode in {"compare", "full"}:
-        from scripts.benchmark_tfidf_vs_textrank import run_compare_pipeline
+        from scripts.benchmark_extractive_engines import run_compare_pipeline
 
         generated_paths.extend(run_compare_pipeline(out_dir=out_dir, ts=args.timestamp))
 

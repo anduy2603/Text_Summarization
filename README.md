@@ -1,5 +1,16 @@
 # Text_Summarization
 
+## Environment (conda)
+
+Create or update the project env from:
+
+- **`backend/environment.yml`** — conda-forge base packages plus pip deps (`torch`, `transformers`, `rouge-score`, PDF/DOCX helpers, etc.). Example:
+
+```bash
+conda env create -f backend/environment.yml
+conda activate vietsum
+```
+
 ## Phase 0 - Frozen Experiment Protocol
 
 Phase 0 fixes dataset splits, preprocessing, output-length rules, metrics, and seeds so later methods stay comparable.
@@ -15,10 +26,11 @@ Phase 0 fixes dataset splits, preprocessing, output-length rules, metrics, and s
 
 ## Phase 1 Baselines (Extractive)
 
-This section tracks official artifact layouts for both extractive engines currently supported in backend:
+This section tracks official artifact layouts for **extractive engines** supported in the Phase 1 comparison benchmark:
 
 - `tfidf`
 - `textrank`
+- `phobert-extractive`
 
 ### Official Artifact Layout
 
@@ -29,7 +41,8 @@ This section tracks official artifact layouts for both extractive engines curren
 ### Current Benchmark Configuration
 
 - TF-IDF notebook: `notebooks/02_tfidf_experiment.ipynb`
-- TextRank benchmark script: `scripts/benchmark_tfidf_vs_textrank.py`
+- Multi-engine Phase 1 benchmark (TF-IDF, TextRank, PhoBERT-extractive): `scripts/benchmark_extractive_engines.py`
+  - Backward-compatible CLI/import alias: `scripts/benchmark_tfidf_vs_textrank.py`
 - Split: `validation`
 - Protocol: `phase0_v2`
 - Top-k candidates: `[2, 3, 4, 5]`
@@ -38,6 +51,7 @@ This section tracks official artifact layouts for both extractive engines curren
 - Report schemas:
   - TF-IDF: `tfidf_phase1_benchmark_v2`
   - TextRank: `textrank_phase1_benchmark_v1`
+  - PhoBERT-extractive: `phobert_phase1_benchmark_v1`
 
 ### Official Benchmark Outputs (Validation)
 
@@ -52,6 +66,11 @@ This section tracks official artifact layouts for both extractive engines curren
   - `textrank_phase1_topk_detail_<timestamp>.csv`
   - `textrank_phase1_topk_report_<timestamp>.json`
   - `textrank_phase1_error_analysis_<timestamp>.md`
+- Expected PhoBERT-extractive artifact naming:
+  - `phobert_phase1_topk_summary_<timestamp>.csv`
+  - `phobert_phase1_topk_detail_<timestamp>.csv`
+  - `phobert_phase1_topk_report_<timestamp>.json`
+  - `phobert_phase1_error_analysis_<timestamp>.md`
 - Expected engine comparison artifact naming:
   - `engine_compare_summary_<timestamp>.csv`
   - `engine_compare_detail_<timestamp>.csv`
@@ -66,7 +85,7 @@ This section tracks official artifact layouts for both extractive engines curren
 - `recommended_top_k_by_weighted_rank = 2` (from report).
 - Official `top_k` used in thesis reporting is locked to `2` (unless a new official rerun supersedes it).
 - Latency label is `summarizer_core_latency_sec`.
-- Latency scope is summarizer-core only (`summarize_with_tfidf`), excluding `process_from_text`.
+- Latency scope is summarizer-core only (`summarize_processed_input_raw` for each engine), excluding `process_from_text`.
 - Weighted selection uses ROUGE-1/2/L, compression ratio, repetition rate, and latency.
 
 ## Evaluator Metrics

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import gzip
 import re
+import zlib
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 
@@ -31,6 +33,35 @@ def _compact_lines(text: str) -> str:
     return "\n".join(line for line in lines if line).strip()
 
 
+def _decompress_http_body(body: bytes, content_encoding_header: str) -> bytes:
+    """
+    urllib does not decode Content-Encoding; many servers (e.g. gzip) return compressed bytes.
+    """
+    raw = (content_encoding_header or "").strip().lower()
+    primary = raw.split(",")[0].strip() if raw else ""
+    if primary in ("gzip", "x-gzip"):
+        try:
+            return gzip.decompress(body)
+        except OSError:
+            _logger.warning("Content-Encoding declares gzip but body failed to decompress.")
+            return body
+    if primary == "deflate":
+        try:
+            return zlib.decompress(body)
+        except zlib.error:
+            try:
+                return zlib.decompress(body, -zlib.MAX_WBITS)
+            except zlib.error:
+                _logger.warning("Content-Encoding declares deflate but body failed to decompress.")
+                return body
+    if not primary and body.startswith(b"\x1f\x8b"):
+        try:
+            return gzip.decompress(body)
+        except OSError:
+            pass
+    return body
+
+
 def load_url_text(url: str) -> tuple[str, str]:
     """
     Fetch URL and return (raw_text, content_type_or_empty).
@@ -43,9 +74,11 @@ def load_url_text(url: str) -> tuple[str, str]:
     out = bytearray()
     content_type = ""
     raw_content_type = ""
+    raw_content_encoding = ""
     try:
         with urlopen(req, timeout=settings.input_url_timeout_sec) as resp:  # noqa: S310
             raw_content_type = resp.headers.get("Content-Type", "") or ""
+            raw_content_encoding = resp.headers.get("Content-Encoding", "") or ""
             content_type = raw_content_type.split(";")[0].strip().lower()
             while len(out) < max_bytes + 1:
                 block = resp.read(chunk)
@@ -67,7 +100,7 @@ def load_url_text(url: str) -> tuple[str, str]:
     if len(out) > max_bytes:
         raise InputValidationError(f"Response body exceeds limit ({max_bytes} bytes).")
 
-    body = bytes(out)
+    body = _decompress_http_body(bytes(out), raw_content_encoding)
     if "html" in content_type or body.lstrip().startswith((b"<", b"<!DOCTYPE", b"<!doctype")):
         soup = BeautifulSoup(body, "lxml")
         for tag in soup(["script", "style", "noscript", "template", "header", "footer", "nav", "aside"]):
