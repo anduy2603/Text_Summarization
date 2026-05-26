@@ -25,7 +25,7 @@ dependencies:
   - ipykernel
   - pip:
       - torch
-      - transformers
+      - "transformers>=4.46.3,<5.0.0"
       - datasets
       - evaluate
       - accelerate

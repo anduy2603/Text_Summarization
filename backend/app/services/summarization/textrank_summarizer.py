@@ -5,51 +5,18 @@ import re
 from collections import Counter
 from typing import Any
 
+from app.core.config import settings
+from app.services.input.vietnamese_stopwords import VIETNAMESE_STOPWORDS
+from app.services.summarization.engine_utils import _resolve_target_k
+from app.services.summarization.selection_utils import select_indices_mmr
+
 _TOKEN_RE = re.compile(r"[^\W_]+", flags=re.UNICODE)
-_STOPWORDS = {
-    "và",
-    "là",
-    "của",
-    "cho",
-    "với",
-    "trong",
-    "trên",
-    "dưới",
-    "tại",
-    "từ",
-    "đến",
-    "các",
-    "những",
-    "một",
-    "này",
-    "đó",
-    "khi",
-    "đã",
-    "đang",
-    "về",
-}
+_STOPWORDS = VIETNAMESE_STOPWORDS
 
 
 def _tokenize(text: str) -> list[str]:
     tokens = [token.lower() for token in _TOKEN_RE.findall(text)]
     return [token for token in tokens if token not in _STOPWORDS]
-
-
-def _resolve_target_k(
-    sentence_count: int,
-    max_sentences: int | None,
-    ratio: float | None,
-) -> tuple[int, dict[str, Any]]:
-    if sentence_count <= 0:
-        return 0, {"selection_mode": "empty-input"}
-    if isinstance(max_sentences, int):
-        k = max(1, min(max_sentences, sentence_count))
-        return k, {"selection_mode": "max_sentences", "requested_max_sentences": max_sentences}
-    if ratio is not None and 0.0 < ratio <= 1.0:
-        k = max(1, math.ceil(ratio * sentence_count))
-        return min(k, sentence_count), {"selection_mode": "ratio", "requested_ratio": ratio}
-    k = min(3, sentence_count)
-    return k, {"selection_mode": "fallback-default", "requested_max_sentences": 3}
 
 
 def _cosine_similarity(tokens_a: list[str], tokens_b: list[str]) -> float:
@@ -137,15 +104,23 @@ def summarize_with_textrank(
     graph = _build_similarity_graph(tokenized)
     scores = _run_pagerank(graph)
     scored = list(enumerate(scores))
-    top_ranked = sorted(scored, key=lambda item: (-item[1], item[0]))[:k]
-    selected_indices_by_score = [idx for idx, _ in top_ranked]
+    selected_indices_by_score = select_indices_mmr(
+        scored,
+        tokenized,
+        k,
+        lambda_param=settings.textrank_mmr_lambda,
+        position_bias_strength=settings.textrank_position_bias,
+    )
     selected_indices = sorted(selected_indices_by_score)
     selected_sentences = [sentences[idx] for idx in selected_indices]
 
     return selected_sentences, {
         "engine": "textrank",
-        "strategy": "textrank-sentence-graph",
+        "strategy": "textrank-mmr",
         "similarity_strategy": "cosine-tf",
+        "selection_strategy": "mmr-with-position-bias",
+        "mmr_lambda": settings.textrank_mmr_lambda,
+        "position_bias_strength": settings.textrank_position_bias,
         **select_meta,
         "resolved_target_k": k,
         "sentence_scores": [{"index": idx, "score": score} for idx, score in scored],

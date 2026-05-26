@@ -1,0 +1,47 @@
+{
+  "report_schema": "multiformat_end_to_end_v1",
+  "script": "scripts/eval_multiformat_end_to_end.py",
+  "protocol_version": "phase0_v2",
+  "target_split": "validation",
+  "manifest_path": "D:\\Text_Summarization\\data\\processed\\vietnews\\dataset_manifest.json",
+  "split_path": "D:\\Text_Summarization\\data\\processed\\vietnews\\validation.jsonl",
+  "n_articles_requested": 2,
+  "seed": 42,
+  "engine": "tfidf",
+  "max_sentences": 3,
+  "article_char_threshold": 1200,
+  "formats": [
+    "text",
+    "txt",
+    "docx"
+  ],
+  "rows_total": 6,
+  "rows_ok": 6,
+  "by_format": [
+    {
+      "format": "docx",
+      "mean_rougeL_f": 0.21851574212893551,
+      "mean_rouge1_f": 0.3702523738130934,
+      "mean_ingest_fidelity_rougeL_sym": 1.0,
+      "mean_cleaned_char_len": 2108.0,
+      "n": 2
+    },
+    {
+      "format": "text",
+      "mean_rougeL_f": 0.21851574212893551,
+      "mean_rouge1_f": 0.3702523738130934,
+      "mean_ingest_fidelity_rougeL_sym": 1.0,
+      "mean_cleaned_char_len": 2108.0,
+      "n": 2
+    },
+    {
+      "format": "txt",
+      "mean_rougeL_f": 0.21851574212893551,
+      "mean_rouge1_f": 0.3702523738130934,
+      "mean_ingest_fidelity_rougeL_sym": 1.0,
+      "mean_cleaned_char_len": 2108.0,
+      "n": 2
+    }
+  ],
+  "detail_csv": "D:\\Text_Summarization\\notebooks\\results\\analysis\\multiformat_e2e_detail_20260513_044423.csv"
+}

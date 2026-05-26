@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #3525cd;
+  --color-primary-container: #4f46e5;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #dad7ff;
+  --color-on-primary-fixed-variant: #3323cc;
+  --color-on-primary-fixed: #0f0069;
+  --color-primary-fixed: #e2dfff;
+  --color-secondary: #712ae2;
+  --color-secondary-container: #8a4cfc;
+  --color-on-secondary-container: #fffbff;
+  --color-background: #f9f9ff;
+  --color-surface: #f9f9ff;
+  --color-surface-container-low: #f0f3ff;
+  --color-surface-container: #e7eefe;
+  --color-surface-container-high: #e2e8f8;
+  --color-surface-container-lowest: #ffffff;
+  --color-on-background: #151c27;
+  --color-on-surface: #151c27;
+  --color-on-surface-variant: #464555;
+  --color-outline: #777587;
+  --color-outline-variant: #c7c4d8;
+  --color-error: #ba1a1a;
+  --font-sans: "Inter", system-ui, sans-serif;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-background text-on-surface font-sans antialiased;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font-family: inherit;
+  }
+}
+
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #c7c4d8;
+    border-radius: 10px;
+  }
+  .ambient-shadow {
+    box-shadow:
+      0 12px 16px -4px rgba(0, 0, 0, 0.04),
+      0 4px 6px -2px rgba(0, 0, 0, 0.02);
+  }
+  .active-project {
+    background-color: #e2dfff;
+    border-left: 4px solid #3525cd;
+    color: #0f0069;
+  }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .line-clamp-4 {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "report_schema": "multiformat_vietnews_file_formats_v1",
+  "script": "scripts/eval_multiformat_vietnews_file_formats.py",
+  "protocol_version": "phase0_v2",
+  "target_split": "validation",
+  "manifest_path": "D:\\Text_Summarization\\data\\processed\\vietnews\\dataset_manifest.json",
+  "split_path": "D:\\Text_Summarization\\data\\processed\\vietnews\\validation.jsonl",
+  "n_requested": 2,
+  "seed": 42,
+  "engine": "tfidf",
+  "max_sentences": 3,
+  "article_char_threshold": 1200,
+  "subset_rows": 2,
+  "by_format": {
+    "text_baseline": {
+      "n_ok": 2,
+      "mean_rougeL_f": 0.21851574212893551,
+      "mean_rouge1_f": 0.3702523738130934,
+      "mean_rouge2_f": 0.12988755430615895,
+      "mean_compression_ratio": 0.21851177608374106,
+      "mean_repetition_rate": 0.011111111111111127,
+      "mean_cleaned_char_len": 2108.0
+    },
+    "file_txt": {
+      "n_ok": 2,
+      "mean_rougeL_f": 0.21851574212893551,
+      "mean_rouge1_f": 0.3702523738130934,
+      "mean_rouge2_f": 0.12988755430615895,
+      "mean_compression_ratio": 0.21851177608374106,
+      "mean_repetition_rate": 0.011111111111111127,
+      "mean_cleaned_char_len": 2108.0
+    },
+    "file_docx": {
+      "n_ok": 2,
+      "mean_rougeL_f": 0.21851574212893551,
+      "mean_rouge1_f": 0.3702523738130934,
+      "mean_rouge2_f": 0.12988755430615895,
+      "mean_compression_ratio": 0.21851177608374106,
+      "mean_repetition_rate": 0.011111111111111127,
+      "mean_cleaned_char_len": 2108.0
+    },
+    "file_pdf": {
+      "n_ok": 2,
+      "mean_rougeL_f": 0.27880434782608693,
+      "mean_rouge1_f": 0.45978260869565213,
+      "mean_rouge2_f": 0.15982905982905982,
+      "mean_compression_ratio": 1.0,
+      "mean_repetition_rate": 0.0,
+      "mean_cleaned_char_len": 132.0
+    }
+  },
+  "rows_total": 8,
+  "rows_ok": 8,
+  "rows_error": 0,
+  "detail_csv": "D:\\Text_Summarization\\notebooks\\results\\analysis\\multiformat_vietnews_files_detail_20260513_044742.csv"
+}

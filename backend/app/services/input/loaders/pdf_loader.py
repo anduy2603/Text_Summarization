@@ -23,5 +23,9 @@ def load_pdf_bytes(content: bytes) -> str:
         doc.close()
     text = "\n\n".join(parts).strip()
     if not text:
-        raise InputLoadError("PDF contains no extractable text.")
+        raise InputLoadError(
+            "PDF không chứa văn bản có thể trích xuất. "
+            "Có thể là bản scan ảnh, PDF trống, hoặc chỉ có hình — hãy dùng TXT/DOCX "
+            "hoặc bản PDF có lớp văn bản (text layer)."
+        )
     return text

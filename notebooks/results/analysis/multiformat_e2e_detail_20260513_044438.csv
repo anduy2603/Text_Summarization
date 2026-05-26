@@ -1,0 +1,5 @@
+guid,format,status,error,ingest_latency_sec,summarize_latency_sec,ingest_fidelity_rougeL_sym,cleaned_char_len,sentence_count,rouge1_f,rouge2_f,rougeL_f,compression_ratio,repetition_rate,predicted_summary
+494,pdf,ok,,0.00491919999999979,0.0004295000000000826,0.9970617042115573,1610,15,0.47706422018348627,0.07476635514018691,0.23853211009174313,0.13229813664596274,0.0,"Theo anh ··c , th·i_gian qua , ·ã ··a tin , ph·n ánh nhi·u v· vi·c ph
+·c t·p , tiêu_c·c , ·nh h··ng ··n quy·n l·i c·a m·t s· cá nhân , t·_ch·c nên nghi_ng· b· k· x·u
+·e_·o· , tr·_thù . H·_Chí_
+Minh . H·_Chí_Minh ."

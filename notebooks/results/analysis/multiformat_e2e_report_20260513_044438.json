@@ -1,0 +1,29 @@
+{
+  "report_schema": "multiformat_end_to_end_v1",
+  "script": "scripts/eval_multiformat_end_to_end.py",
+  "protocol_version": "phase0_v2",
+  "target_split": "validation",
+  "manifest_path": "D:\\Text_Summarization\\data\\processed\\vietnews\\dataset_manifest.json",
+  "split_path": "D:\\Text_Summarization\\data\\processed\\vietnews\\validation.jsonl",
+  "n_articles_requested": 1,
+  "seed": 42,
+  "engine": "tfidf",
+  "max_sentences": 3,
+  "article_char_threshold": 1200,
+  "formats": [
+    "pdf"
+  ],
+  "rows_total": 1,
+  "rows_ok": 1,
+  "by_format": [
+    {
+      "format": "pdf",
+      "mean_rougeL_f": 0.23853211009174313,
+      "mean_rouge1_f": 0.47706422018348627,
+      "mean_ingest_fidelity_rougeL_sym": 0.9970617042115573,
+      "mean_cleaned_char_len": 1610.0,
+      "n": 1
+    }
+  ],
+  "detail_csv": "D:\\Text_Summarization\\notebooks\\results\\analysis\\multiformat_e2e_detail_20260513_044438.csv"
+}

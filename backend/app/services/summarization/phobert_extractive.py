@@ -1,64 +1,96 @@
 from __future__ import annotations
 
-import math
+import os
 from functools import lru_cache
 from typing import Any
 
 import numpy as np
 
+from app.services.summarization.engine_utils import _resolve_target_k
+from app.services.summarization.model_utils import _set_huggingface_offline
+
 PHOBERT_MODEL_NAME = "vinai/phobert-base-v2"
 PHOBERT_SENTENCE_BATCH_SIZE = 8
+PHOBERT_ALLOW_DOWNLOAD_ENV = "PHOBERT_ALLOW_DOWNLOAD"
 
 
 class PhoBertEngineNotReadyError(RuntimeError):
     """Raised when PhoBERT dependencies/model weights are unavailable."""
 
 
-def _resolve_target_k(
-    sentence_count: int,
-    max_sentences: int | None,
-    ratio: float | None,
-) -> tuple[int, dict[str, Any]]:
-    if sentence_count <= 0:
-        return 0, {"selection_mode": "empty-input"}
+def _load_phobert_from_cache() -> tuple[Any, Any]:
+    from transformers import AutoTokenizer, RobertaModel
 
-    if isinstance(max_sentences, int):
-        k = max(1, min(max_sentences, sentence_count))
-        return k, {"selection_mode": "max_sentences", "requested_max_sentences": max_sentences}
+    tokenizer = AutoTokenizer.from_pretrained(
+        PHOBERT_MODEL_NAME,
+        local_files_only=True,
+    )
+    # Encoder-only: checkpoint is MLM (lm_head ignored); we mean-pool last_hidden_state, not pooler.
+    model = RobertaModel.from_pretrained(
+        PHOBERT_MODEL_NAME,
+        local_files_only=True,
+        use_safetensors=False,
+        add_pooling_layer=False,
+    )
+    return tokenizer, model
 
-    if ratio is not None and 0.0 < ratio <= 1.0:
-        k = max(1, math.ceil(ratio * sentence_count))
-        return min(k, sentence_count), {"selection_mode": "ratio", "requested_ratio": ratio}
 
-    k = min(3, sentence_count)
-    return k, {"selection_mode": "fallback-default", "requested_max_sentences": 3}
+def _load_phobert_online() -> tuple[Any, Any]:
+    from transformers import AutoTokenizer, RobertaModel
+
+    tokenizer = AutoTokenizer.from_pretrained(PHOBERT_MODEL_NAME)
+    model = RobertaModel.from_pretrained(
+        PHOBERT_MODEL_NAME,
+        use_safetensors=False,
+        add_pooling_layer=False,
+    )
+    return tokenizer, model
 
 
 @lru_cache(maxsize=1)
-def _get_phobert_runtime() -> tuple[Any, Any, Any]:
+def _get_phobert_runtime() -> tuple[Any, Any, Any, Any]:
+    allow_download = os.environ.get(PHOBERT_ALLOW_DOWNLOAD_ENV) == "1"
+    if not allow_download:
+        _set_huggingface_offline()
+
     try:
         import torch
-        from transformers import AutoModel, AutoTokenizer
     except Exception as exc:  # pragma: no cover - environment dependent
-        raise PhoBertEngineNotReadyError(
-            "PhoBERT engine requires `torch` and `transformers` to be installed."
-        ) from exc
+        hint = (
+            "PhoBERT engine requires `torch` and `transformers` to be installed "
+            "and importable in this environment."
+        )
+        root = exc
+        while getattr(root, "__cause__", None) is not None:
+            root = root.__cause__
+        root_msg = str(root).strip()
+        if root_msg and root_msg not in hint:
+            hint = f"{hint} Root error: {type(root).__name__}: {root_msg}"
+        raise PhoBertEngineNotReadyError(hint) from exc
 
     try:
-        tokenizer = AutoTokenizer.from_pretrained(PHOBERT_MODEL_NAME)
-        model = AutoModel.from_pretrained(PHOBERT_MODEL_NAME)
+        if allow_download:
+            tokenizer, model = _load_phobert_online()
+        else:
+            tokenizer, model = _load_phobert_from_cache()
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        model.to(device)
         model.eval()
     except Exception as exc:  # pragma: no cover - environment dependent
+        download_hint = (
+            f"Set {PHOBERT_ALLOW_DOWNLOAD_ENV}=1 to allow a one-time HuggingFace download "
+            "when internet access is available."
+        )
         raise PhoBertEngineNotReadyError(
             f"Unable to load PhoBERT model '{PHOBERT_MODEL_NAME}'. "
-            "Check internet access or local HuggingFace cache."
+            f"Check local HuggingFace cache. {download_hint}"
         ) from exc
 
-    return tokenizer, model, torch
+    return tokenizer, model, torch, device
 
 
 def _encode_sentences(sentences: list[str]) -> np.ndarray:
-    tokenizer, model, torch = _get_phobert_runtime()
+    tokenizer, model, torch, device = _get_phobert_runtime()
     batches: list[np.ndarray] = []
     for start in range(0, len(sentences), PHOBERT_SENTENCE_BATCH_SIZE):
         batch = sentences[start : start + PHOBERT_SENTENCE_BATCH_SIZE]
@@ -69,6 +101,7 @@ def _encode_sentences(sentences: list[str]) -> np.ndarray:
             max_length=256,
             return_tensors="pt",
         )
+        encoded = {k: v.to(device) for k, v in encoded.items()}
         with torch.no_grad():
             outputs = model(**encoded)
             hidden = outputs.last_hidden_state

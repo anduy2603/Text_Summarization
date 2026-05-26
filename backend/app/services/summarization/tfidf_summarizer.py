@@ -1,33 +1,14 @@
 from __future__ import annotations
 
-import math
 import re
 from collections import Counter
 from typing import Any
 
+from app.services.input.vietnamese_stopwords import VIETNAMESE_STOPWORDS
+from app.services.summarization.engine_utils import _resolve_target_k
+
 _TOKEN_RE = re.compile(r"[^\W_]+", flags=re.UNICODE)
-_STOPWORDS = {
-    "và",
-    "là",
-    "của",
-    "cho",
-    "với",
-    "trong",
-    "trên",
-    "dưới",
-    "tại",
-    "từ",
-    "đến",
-    "các",
-    "những",
-    "một",
-    "này",
-    "đó",
-    "khi",
-    "đã",
-    "đang",
-    "về",
-}
+_STOPWORDS = VIETNAMESE_STOPWORDS
 
 
 def _tokenize(text: str) -> list[str]:
@@ -50,41 +31,6 @@ def _build_idf(tokenized_sentences: list[list[str]]) -> dict[str, float]:
         # Smoothed IDF to avoid division by zero on tiny inputs.
         idf[token] = math.log((1.0 + sentence_count) / (1.0 + df)) + 1.0
     return idf
-
-
-def _resolve_target_k(
-    sentence_count: int,
-    max_sentences: int | None,
-    ratio: float | None,
-) -> tuple[int, dict[str, Any]]:
-    """
-    Resolve final sentence count using one of two modes:
-    - top-k mode: explicit max_sentences
-    - ratio mode: k = max(1, ceil(ratio * sentence_count))
-    Priority: max_sentences (if provided) > ratio > default.
-    """
-    if sentence_count <= 0:
-        return 0, {"selection_mode": "empty-input"}
-
-    if isinstance(max_sentences, int):
-        k = max(1, min(max_sentences, sentence_count))
-        return k, {
-            "selection_mode": "max_sentences",
-            "requested_max_sentences": max_sentences,
-        }
-
-    if ratio is not None and 0.0 < ratio <= 1.0:
-        k = max(1, math.ceil(ratio * sentence_count))
-        return min(k, sentence_count), {
-            "selection_mode": "ratio",
-            "requested_ratio": ratio,
-        }
-
-    k = min(3, sentence_count)
-    return k, {
-        "selection_mode": "fallback-default",
-        "requested_max_sentences": 3,
-    }
 
 
 def summarize_with_tfidf(

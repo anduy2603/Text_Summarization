@@ -24,7 +24,8 @@ def load_docx_bytes(content: bytes) -> str:
             cells = [c.text.strip() for c in row.cells if c.text and c.text.strip()]
             if cells:
                 parts.append(" | ".join(cells))
-    text = "\n".join(parts).strip()
+    # Double newline preserves paragraph boundaries for sentence splitting.
+    text = "\n\n".join(parts).strip()
     if not text:
         raise InputLoadError("DOCX contains no extractable text.")
     return text

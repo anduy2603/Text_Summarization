@@ -5,12 +5,16 @@ from typing import Any, Optional
 from pydantic import BaseModel, Field
 
 
-SUPPORTED_SUMMARY_ENGINES = ("tfidf", "textrank", "phobert-extractive")
+SUPPORTED_SUMMARY_ENGINES = ("tfidf", "textrank", "phobert-extractive", "vit5", "hybrid")
 PLANNED_SUMMARY_ENGINES = (
-    "vit5",
     "bartpho",
     "gemini",
 )
+
+
+class ExportDocxRequest(BaseModel):
+    title: str = Field(default="Tóm tắt", max_length=200)
+    summary: str = Field(..., min_length=1, max_length=200_000)
 
 
 class HealthResponse(BaseModel):
@@ -34,8 +38,8 @@ class SummaryControls(BaseModel):
         default=None,
         description=(
             "Optional summarization engine override. "
-            "Currently supported: tfidf, textrank, phobert-extractive. "
-            "Planned but not ready: vit5, bartpho, gemini."
+            "Currently supported: tfidf, textrank, phobert-extractive, vit5 (abstractive), hybrid (default product). "
+            "Planned but not ready: bartpho, gemini."
         ),
     )
 

@@ -5,7 +5,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
@@ -34,8 +34,8 @@ def parse_args() -> argparse.Namespace:
 
 
 def run_qa_and_tfidf(mode: str, out_dir: Path, ts: str) -> list[Path]:
-    from scripts.generate_official_validation_artifacts import build_qa_artifact, build_tfidf_artifacts
-    from scripts.generate_short_error_analysis import generate_tfidf_error_analysis_from_report
+    from scripts.legacy.generate_official_validation_artifacts import build_qa_artifact, build_tfidf_artifacts
+    from scripts.legacy.generate_short_error_analysis import generate_tfidf_error_analysis_from_report
 
     generated_paths: list[Path] = []
     if mode in {"qa", "full"}:

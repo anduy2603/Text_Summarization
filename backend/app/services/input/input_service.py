@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import PurePath
 
 from app.core.config import settings
-from app.services.input import cleaner, normalizer, sentence_splitter
+from app.services.input import cleaner, normalizer, sentence_candidates, sentence_splitter
 from app.services.input.exceptions import InputValidationError
 from app.services.input.loaders import load_docx_bytes, load_pdf_bytes, load_txt_bytes, load_url_text
 from app.services.input.validator import validate_file_size, validate_filename, validate_non_empty_text
@@ -24,12 +24,19 @@ def _run_text_pipeline(raw: str, source_type: SourceType, extra_meta: dict | Non
         raise InputValidationError(
             f"Text too long (max {settings.input_max_text_chars} characters)."
         )
-    sents = sentence_splitter.split_sentences(normalized)
+    raw_sents = sentence_splitter.split_sentences(normalized)
+    sents, filter_stats = sentence_candidates.filter_sentences_for_summarization(raw_sents)
+    if not sents and raw_sents:
+        # Keep at least one sentence so downstream summarizers can fall back.
+        sents = raw_sents[:1]
+        filter_stats = {**filter_stats, "fallback_kept_one": 1}
     meta = {
         "raw_char_length": len(raw),
         "cleaned_char_length": len(cleaned),
         "normalized_char_length": len(normalized),
+        "raw_sentence_count": len(raw_sents),
         "sentence_count": len(sents),
+        "sentence_filter": filter_stats,
         **(extra_meta or {}),
     }
     return ProcessedInput(

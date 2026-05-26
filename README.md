@@ -32,6 +32,8 @@ This section tracks official artifact layouts for **extractive engines** support
 - `textrank`
 - `phobert-extractive`
 
+Script roles and recommended commands are documented in **`scripts/README.md`**.
+
 ### Official Artifact Layout
 
 - Official outputs: `notebooks/results/official/validation/`
@@ -42,7 +44,7 @@ This section tracks official artifact layouts for **extractive engines** support
 
 - TF-IDF notebook: `notebooks/02_tfidf_experiment.ipynb`
 - Multi-engine Phase 1 benchmark (TF-IDF, TextRank, PhoBERT-extractive): `scripts/benchmark_extractive_engines.py`
-  - Backward-compatible CLI/import alias: `scripts/benchmark_tfidf_vs_textrank.py`
+  - Backward-compatible legacy alias: `scripts/legacy/benchmark_tfidf_vs_textrank.py`
 - Split: `validation`
 - Protocol: `phase0_v2`
 - Top-k candidates: `[2, 3, 4, 5]`
@@ -79,6 +81,14 @@ This section tracks official artifact layouts for **extractive engines** support
   - `vietnews_data_check_summary_validation_<timestamp>.json`
 - To identify the latest official run, use the most recent timestamp shared by the summary/detail/report trio in `official/validation/`.
 - Quick helper: `python scripts/print_latest_official_run.py`
+
+### Multi-format (TXT / DOCX / PDF) evaluation
+
+- Notebook walkthrough: `notebooks/05_multiformat_pipeline.ipynb`
+- Single-engine batch: `python scripts/eval_multiformat_vietnews_file_formats.py --help`
+- **Three extractive engines, same protocol:** `python scripts/run_multiformat_extractive_suite.py --help`
+- Aligned real-file matrix (thesis demo): `python scripts/demos/eval_aligned_real_file_matrix.py --help`
+- **Thesis text:** when ROUGE vs VietNews gold is valid vs arbitrary uploads — `docs/thesis_upload_to_summary_evaluation.md`
 
 ### Benchmark Notes
 

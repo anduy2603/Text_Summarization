@@ -2,15 +2,48 @@ from __future__ import annotations
 
 import re
 
-_SENTENCE_BOUNDARY_RE = re.compile(r"(?<=[.!?…])\s+|\n{2,}")
+_PARAGRAPH_BREAK_RE = re.compile(r"\n{2,}")
+_SENTENCE_BOUNDARY_RE = re.compile(r"(?<=[.!?…])\s+")
+
+
+def split_paragraphs(text: str) -> list[str]:
+    if not text or not text.strip():
+        return []
+    parts = _PARAGRAPH_BREAK_RE.split(text)
+    return [part.strip() for part in parts if part.strip()]
+
+
+def _split_paragraph_sentences(paragraph: str) -> list[str]:
+    paragraph = paragraph.strip()
+    if not paragraph:
+        return []
+
+    lines = [ln.strip() for ln in paragraph.split("\n") if ln.strip()]
+    # Title/sapo blocks without terminal punctuation: keep each line as its own unit.
+    if len(lines) > 1 and not re.search(r"[.!?…]", paragraph):
+        return lines
+
+    parts = _SENTENCE_BOUNDARY_RE.split(paragraph)
+    sentences: list[str] = []
+    for part in parts:
+        part = part.strip()
+        if not part:
+            continue
+        if "\n" in part:
+            sentences.extend(ln.strip() for ln in part.split("\n") if ln.strip())
+        else:
+            sentences.append(part)
+    return sentences
 
 
 def split_sentences(text: str) -> list[str]:
     """
-    Regex-only sentence splitting for Phase 0/1 reproducibility.
-    This avoids environment-dependent drift caused by optional tokenizers.
+    Paragraph-aware sentence splitting.
+    Double newlines are strong boundaries; within a paragraph, split on .!?…
     """
     if not text or not text.strip():
         return []
-    parts = _SENTENCE_BOUNDARY_RE.split(text)
-    return [part.strip() for part in parts if part.strip()]
+    sentences: list[str] = []
+    for paragraph in split_paragraphs(text):
+        sentences.extend(_split_paragraph_sentences(paragraph))
+    return [sentence for sentence in sentences if sentence]
