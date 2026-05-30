@@ -1,117 +1,194 @@
-# Text_Summarization
+# Multi-format Vietnamese Document Summarization
 
-## Environment (conda)
+Hệ thống tóm tắt tài liệu tiếng Việt đa định dạng (TXT, DOCX, PDF, URL) sử dụng các phương pháp NLP extractive và abstractive.
 
-Create or update the project env from:
+---
 
-- **`backend/environment.yml`** — conda-forge base packages plus pip deps (`torch`, `transformers`, `rouge-score`, PDF/DOCX helpers, etc.). Example:
+## Quickstart
+
+### Option A — Docker (khuyến nghị, không cần cài conda hay model thủ công)
+
+> **Yêu cầu:** Docker Desktop đã chạy, model weights đã cache trên máy (xem mục "Tải model lần đầu" bên dưới).
 
 ```bash
-conda env create -f backend/environment.yml
-conda activate vietsum
+# Windows (PowerShell)
+$env:HF_HOME = "$env:USERPROFILE\.cache\huggingface"
+docker compose up --build
+
+# Linux / Mac
+docker compose up --build
 ```
 
-## Phase 0 - Frozen Experiment Protocol
+Mở trình duyệt: **http://localhost:3000**
 
-Phase 0 fixes dataset splits, preprocessing, output-length rules, metrics, and seeds so later methods stay comparable.
+---
+
+### Option B — Chạy thủ công (conda)
+
+```bash
+# 1. Tạo môi trường
+conda env create -f backend/environment.yml
+conda activate vietsum
+
+# 2. Tải model weights lần đầu (chỉ cần làm một lần, ~1.3 GB)
+cd backend
+VIT5_ALLOW_DOWNLOAD=1 PHOBERT_ALLOW_DOWNLOAD=1 python -c "
+from app.services.summarization.vit5_abstractive import _get_vit5_runtime
+from app.services.summarization.phobert_extractive import _get_phobert_runtime
+_get_vit5_runtime(); _get_phobert_runtime()
+"
+
+# 3. Chạy backend
+python run_api.py
+# → http://127.0.0.1:8000
+
+# 4. Chạy frontend (terminal mới)
+cd ../frontend
+npm install
+npm run dev
+# → http://localhost:5173
+```
+
+---
+
+## Tải model lần đầu
+
+Hai model cần tải về HuggingFace cache (~1.3 GB tổng):
+
+| Model | Kích thước | Env var để download |
+|-------|-----------|---------------------|
+| `VietAI/vit5-base-vietnews-summarization` | ~900 MB | `VIT5_ALLOW_DOWNLOAD=1` |
+| `vinai/phobert-base-v2` | ~400 MB | `PHOBERT_ALLOW_DOWNLOAD=1` |
+
+Sau khi cache xong, **không cần set env var nữa** — model sẽ load từ cache offline.
+
+**Vị trí cache:**
+- Windows: `%USERPROFILE%\.cache\huggingface\`
+- Linux/Mac: `~/.cache/huggingface/`
+
+---
+
+## Cấu hình
+
+Copy file mẫu và chỉnh sửa nếu cần:
+
+```bash
+cp backend/.env.example backend/.env
+```
+
+Biến quan trọng nhất:
+
+```env
+SUMMARY_ENGINE=hybrid          # default engine (tfidf/textrank/phobert-extractive/vit5/hybrid)
+SUMMARY_MAX_SENTENCES=3        # số câu tóm tắt mặc định
+PRELOAD_MODELS=true            # load ViT5+PhoBERT khi khởi động (tránh cold start)
+```
+
+---
+
+## Kết quả Benchmark
+
+**Dataset:** VietNews validation, n=200 bài, `max_sentences=2`, `seed=42`
+
+| Engine | Loại | ROUGE-1 | ROUGE-2 | ROUGE-L | Latency | Repetition |
+|--------|------|---------|---------|---------|---------|------------|
+| TF-IDF | Extractive | 0.4773 | 0.1400 | 0.2701 | 0.6ms | 1.1% |
+| TextRank | Extractive | 0.4981 | 0.2236 | 0.3205 | 2.3ms | 9.9% |
+| PhoBERT | Extractive | 0.4759 | 0.2120 | 0.2955 | 644ms | 4.0% |
+| ViT5 | Abstractive | **0.5845** | **0.2542** | **0.3670** | 3299ms | **1.6%** |
+| Hybrid | Hybrid | 0.4541 | 0.2199 | 0.2901 | 2250ms | 2.6% |
+
+**Ghi chú:** Hybrid có ROUGE thấp hơn ViT5 standalone vì ROUGE đo n-gram overlap — Hybrid paraphrase nội dung từ các câu được TextRank chọn lọc, trong khi ViT5 standalone đọc phần đầu bài (trùng nhiều hơn với reference). Hybrid giải quyết giới hạn 512-token của ViT5 cho tài liệu dài và có repetition thấp hơn TextRank 4×.
+
+---
+
+## API Endpoints
+
+Server chạy tại `http://localhost:8000`:
+
+| Method | Endpoint | Mô tả |
+|--------|----------|-------|
+| GET | `/api/v1/health` | Health check |
+| GET | `/api/v1/engines` | Danh sách engine |
+| POST | `/api/v1/summarize` | Tóm tắt từ text |
+| POST | `/api/v1/summarize/file` | Upload TXT/DOCX/PDF |
+| POST | `/api/v1/summarize/url` | Tóm tắt từ URL |
+| POST | `/api/v1/export/docx` | Xuất DOCX |
+
+**Query params chung:** `engine`, `max_sentences` (1–20), `ratio` (0–1)
+
+---
+
+## Chạy Tests
+
+```bash
+cd backend
+pytest tests/ -v
+```
+
+---
+
+## Chạy Benchmark
+
+```bash
+# Extractive engines (TF-IDF, TextRank, PhoBERT):
+python scripts/benchmark_extractive_engines.py
+
+# Hybrid engine + ViT5 + TextRank:
+python scripts/benchmark_hybrid_engine.py --n 200 --max-sentences 2 --warmup-vit5
+
+# In bảng so sánh 5 engine:
+python scripts/print_unified_comparison_table.py
+```
+
+---
+
+## Cấu trúc dự án
+
+```
+Text_Summarization/
+├── backend/                    # FastAPI backend
+│   ├── app/
+│   │   ├── api/routes/         # HTTP endpoints
+│   │   ├── services/
+│   │   │   ├── input/          # Pipeline xử lý đầu vào
+│   │   │   └── summarization/  # 5 engine tóm tắt
+│   │   └── core/               # Config, Logger
+│   ├── tests/                  # pytest integration tests
+│   ├── environment.yml         # Conda env definition
+│   ├── .env.example            # Template cấu hình
+│   └── Dockerfile
+├── frontend/                   # React/Vite frontend
+│   └── Dockerfile
+├── evaluation/                 # ROUGE evaluation framework
+├── scripts/                    # Benchmark scripts
+├── notebooks/                  # Experiment notebooks
+│   └── results/official/       # Locked benchmark results
+├── data/                       # VietNews dataset
+├── configs/phase0_protocol.yaml
+└── docker-compose.yml
+```
+
+---
+
+## Phase 0 — Frozen Experiment Protocol
+
+Phase 0 cố định dataset splits, preprocessing, output-length rules, metrics, và seeds để các phương pháp so sánh được với nhau.
 
 - **Protocol file:** `configs/phase0_protocol.yaml`
-- **Current protocol version:** `phase0_v2`
-- **Sentence splitting policy for Phase 0/1:** regex-only, to avoid environment-dependent drift from optional tokenizers
-- **Raw VietNews:** `data/raw/vietnews/` (see `data/raw/vietnews/README.md`; large files stay gitignored)
-- **Prepare processed JSONL + manifest:** `python scripts/prepare_dataset.py` (writes `data/processed/vietnews/` and `dataset_manifest.json`)
-- **Download from Hugging Face (optional):** `python scripts/download_vietnews.py`
-- **Metrics implementation:** `evaluation/evaluator.py` (ROUGE-1/2/L, latency, compression ratio, bigram repetition rate)
-- **Notebook:** `notebooks/01_vietnews_data_check.ipynb`
+- **Version hiện tại:** `phase0_v2`
+- **Sentence splitting:** regex-only (không dùng tokenizer bên ngoài, đảm bảo reproducibility)
+- **Processed data:** `data/processed/vietnews/` (tải về: `python scripts/download_vietnews.py`)
+- **Metrics:** `evaluation/evaluator.py` — ROUGE-1/2/L, compression ratio, bigram repetition rate
 
-## Phase 1 Baselines (Extractive)
+### Artifact layout (Official)
 
-This section tracks official artifact layouts for **extractive engines** supported in the Phase 1 comparison benchmark:
+Kết quả chính thức: `notebooks/results/official/validation/`
 
-- `tfidf`
-- `textrank`
-- `phobert-extractive`
+| Artifact | Mô tả |
+|----------|-------|
+| `engine_compare_report_<ts>.json` | Extractive benchmark (TF-IDF, TextRank, PhoBERT) |
+| `vit5_vs_textrank_report_<ts>.json` | ViT5 vs TextRank (n=200) |
+| `hybrid_engine_report_<ts>.json` | Hybrid + ViT5 + TextRank (n=200) |
 
-Script roles and recommended commands are documented in **`scripts/README.md`**.
-
-### Official Artifact Layout
-
-- Official outputs: `notebooks/results/official/validation/`
-- Legacy/superseded outputs: `notebooks/results/deprecated/`
-- Reserved archive bucket: `notebooks/results/archive/`
-
-### Current Benchmark Configuration
-
-- TF-IDF notebook: `notebooks/02_tfidf_experiment.ipynb`
-- Multi-engine Phase 1 benchmark (TF-IDF, TextRank, PhoBERT-extractive): `scripts/benchmark_extractive_engines.py`
-  - Backward-compatible legacy alias: `scripts/legacy/benchmark_tfidf_vs_textrank.py`
-- Split: `validation`
-- Protocol: `phase0_v2`
-- Top-k candidates: `[2, 3, 4, 5]`
-- Subset limit: `200`
-- Article threshold: `article_char_len >= 1200`
-- Report schemas:
-  - TF-IDF: `tfidf_phase1_benchmark_v2`
-  - TextRank: `textrank_phase1_benchmark_v1`
-  - PhoBERT-extractive: `phobert_phase1_benchmark_v1`
-
-### Official Benchmark Outputs (Validation)
-
-- Official benchmark directory: `notebooks/results/official/validation/`
-- Expected TF-IDF artifact naming:
-  - `tfidf_phase1_topk_summary_<timestamp>.csv`
-  - `tfidf_phase1_topk_detail_<timestamp>.csv`
-  - `tfidf_phase1_topk_report_<timestamp>.json`
-  - `tfidf_phase1_error_analysis_<timestamp>.md`
-- Expected TextRank artifact naming:
-  - `textrank_phase1_topk_summary_<timestamp>.csv`
-  - `textrank_phase1_topk_detail_<timestamp>.csv`
-  - `textrank_phase1_topk_report_<timestamp>.json`
-  - `textrank_phase1_error_analysis_<timestamp>.md`
-- Expected PhoBERT-extractive artifact naming:
-  - `phobert_phase1_topk_summary_<timestamp>.csv`
-  - `phobert_phase1_topk_detail_<timestamp>.csv`
-  - `phobert_phase1_topk_report_<timestamp>.json`
-  - `phobert_phase1_error_analysis_<timestamp>.md`
-- Expected engine comparison artifact naming:
-  - `engine_compare_summary_<timestamp>.csv`
-  - `engine_compare_detail_<timestamp>.csv`
-  - `engine_compare_report_<timestamp>.json`
-- Expected data QA artifact naming:
-  - `vietnews_data_check_summary_validation_<timestamp>.json`
-- To identify the latest official run, use the most recent timestamp shared by the summary/detail/report trio in `official/validation/`.
-- Quick helper: `python scripts/print_latest_official_run.py`
-
-### Multi-format (TXT / DOCX / PDF) evaluation
-
-- Notebook walkthrough: `notebooks/05_multiformat_pipeline.ipynb`
-- Single-engine batch: `python scripts/eval_multiformat_vietnews_file_formats.py --help`
-- **Three extractive engines, same protocol:** `python scripts/run_multiformat_extractive_suite.py --help`
-- Aligned real-file matrix (thesis demo): `python scripts/demos/eval_aligned_real_file_matrix.py --help`
-- **Thesis text:** when ROUGE vs VietNews gold is valid vs arbitrary uploads — `docs/thesis_upload_to_summary_evaluation.md`
-
-### Benchmark Notes
-
-- `recommended_top_k_by_weighted_rank = 2` (from report).
-- Official `top_k` used in thesis reporting is locked to `2` (unless a new official rerun supersedes it).
-- Latency label is `summarizer_core_latency_sec`.
-- Latency scope is summarizer-core only (`summarize_processed_input_raw` for each engine), excluding `process_from_text`.
-- Weighted selection uses ROUGE-1/2/L, compression ratio, repetition rate, and latency.
-
-## Evaluator Metrics
-
-The canonical implementation is `evaluation/evaluator.py`:
-
-- ROUGE: `rouge1_f`, `rouge2_f`, `rougeL_f`
-- Compression: `compression_ratio = len(summary_chars) / len(source_chars)`
-- Repetition: `repetition_rate` as bigram repetition by default (`n=2`)
-- Latency: `latency_sec` in evaluator; benchmark notebook renames this field to `summarizer_core_latency_sec` for clarity
-
-## Data QA Status
-
-- Data QA notebook: `notebooks/01_vietnews_data_check.ipynb`
-- Target split: `validation`
-- Hard gate requires both:
-  - schema/data pass conditions
-  - `acceptable_for_benchmark = true` in protocol consistency
-- If the gate fails, official QA JSON export is intentionally blocked.
+Lấy kết quả mới nhất: `python scripts/print_latest_official_run.py`

@@ -1,0 +1,36 @@
+# Large data files — never bake into image
+data/
+*.bin
+*.safetensors
+*.pt
+*.ckpt
+
+# Python artifacts
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+.pytest_cache/
+.mypy_cache/
+
+# Dev environments
+.env
+backend/.env
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# Notebooks and results (not needed at runtime)
+notebooks/
+scripts/
+evaluation/
+configs/
+docs/
+
+# Git
+.git/
+.gitignore
+
+# Misc
+*.log
+*.tmp

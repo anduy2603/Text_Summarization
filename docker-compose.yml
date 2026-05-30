@@ -1,0 +1,39 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    environment:
+      - API_HOST=0.0.0.0
+      - PRELOAD_MODELS=true
+      - TRANSFORMERS_OFFLINE=1
+      - HF_DATASETS_OFFLINE=1
+    volumes:
+      # Mount HuggingFace model cache from host (read-only).
+      # Windows: set HF_HOME to %USERPROFILE%\.cache\huggingface in a .env file at project root.
+      # Linux/Mac: default ~/.cache/huggingface is used automatically.
+      - ${HF_HOME:-~/.cache/huggingface}:/root/.cache/huggingface:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes: {}
