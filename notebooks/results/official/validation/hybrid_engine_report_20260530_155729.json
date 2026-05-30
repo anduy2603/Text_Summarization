@@ -1,0 +1,58 @@
+{
+  "report_schema_version": "hybrid_engine_benchmark_v1",
+  "script": "scripts/benchmark_hybrid_engine.py",
+  "protocol_version": "phase0_v2",
+  "target_split": "validation",
+  "seed": 42,
+  "subset_limit": 200,
+  "article_char_threshold": 1200,
+  "max_sentences": 2,
+  "engines": [
+    "textrank",
+    "vit5",
+    "hybrid"
+  ],
+  "manifest_path": "D:\\Text_Summarization\\data\\processed\\vietnews\\dataset_manifest.json",
+  "split_path": "D:\\Text_Summarization\\data\\processed\\vietnews\\validation.jsonl",
+  "summary_by_engine": [
+    {
+      "engine": "hybrid",
+      "n": 200,
+      "rouge1_f": 0.45407431991855285,
+      "rouge2_f": 0.21991199911414963,
+      "rougeL_f": 0.2901269862954753,
+      "summarizer_core_latency_sec": 2.2498026470002515,
+      "compression_ratio": 0.19554115877284534,
+      "repetition_rate": 0.026374538730424946
+    },
+    {
+      "engine": "textrank",
+      "n": 200,
+      "rouge1_f": 0.4909493086400358,
+      "rouge2_f": 0.22787276991644634,
+      "rougeL_f": 0.30079312886779574,
+      "summarizer_core_latency_sec": 0.0033389404998524696,
+      "compression_ratio": 0.16755101519763738,
+      "repetition_rate": 0.013829825243934238
+    },
+    {
+      "engine": "vit5",
+      "n": 200,
+      "rouge1_f": 0.5900100844034166,
+      "rouge2_f": 0.2618363509118778,
+      "rougeL_f": 0.3694621034940307,
+      "summarizer_core_latency_sec": 2.810653200500019,
+      "compression_ratio": 0.06439868938884281,
+      "repetition_rate": 0.006932666383483781
+    }
+  ],
+  "environment": {
+    "python_version": "3.10.20",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "git_commit": "faea26f7dedd30dac178e087ed48dad75c1c8fe4",
+    "git_dirty": false,
+    "rouge_score_version": "0.1.2",
+    "transformers_version": "4.46.3"
+  },
+  "detail_csv": "D:\\Text_Summarization\\notebooks\\results\\official\\validation\\hybrid_engine_detail_20260530_155729.csv"
+}
