@@ -15,7 +15,7 @@ RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/wh
 # Install remaining Python dependencies
 COPY environment.yml /tmp/environment.yml
 RUN pip install --no-cache-dir \
-        "transformers>=4.46.3,<5.0.0" \
+        "transformers>=4.46.3,<4.50.0" \
         sentencepiece \
         accelerate \
         fastapi \

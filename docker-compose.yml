@@ -16,7 +16,7 @@ services:
       # Mount HuggingFace model cache from host (read-only).
       # Windows: set HF_HOME to %USERPROFILE%\.cache\huggingface in a .env file at project root.
       # Linux/Mac: default ~/.cache/huggingface is used automatically.
-      - ${HF_HOME:-~/.cache/huggingface}:/root/.cache/huggingface:ro
+      - ${HF_HOME:-~/.cache/huggingface}:/root/.cache/huggingface
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
       interval: 30s
