@@ -1,0 +1,64 @@
+{
+  "report_schema_version": "bertscore_benchmark_v1",
+  "script": "scripts/benchmark_bertscore.py",
+  "protocol_version": "phase0_v2",
+  "target_split": "validation",
+  "bertscore_model": "bert-base-multilingual-cased",
+  "subset_limit": 10,
+  "extractive_top_k": 2,
+  "abstractive_max_sentences": 2,
+  "engines": [
+    "tfidf",
+    "textrank",
+    "phobert-extractive",
+    "vit5",
+    "hybrid"
+  ],
+  "summary_by_engine": [
+    {
+      "engine": "tfidf",
+      "n": 10,
+      "bertscore_p": 0.672804,
+      "bertscore_r": 0.700268,
+      "bertscore_f1": 0.685966
+    },
+    {
+      "engine": "textrank",
+      "n": 10,
+      "bertscore_p": 0.714669,
+      "bertscore_r": 0.74314,
+      "bertscore_f1": 0.728259
+    },
+    {
+      "engine": "phobert-extractive",
+      "n": 10,
+      "bertscore_p": 0.700118,
+      "bertscore_r": 0.767439,
+      "bertscore_f1": 0.731688
+    },
+    {
+      "engine": "vit5",
+      "n": 10,
+      "bertscore_p": 0.740162,
+      "bertscore_r": 0.71777,
+      "bertscore_f1": 0.728475
+    },
+    {
+      "engine": "hybrid",
+      "n": 10,
+      "bertscore_p": 0.681139,
+      "bertscore_r": 0.766814,
+      "bertscore_f1": 0.721235
+    }
+  ],
+  "environment": {
+    "python_version": "3.10.20",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "git_commit": "f4f128f8a3af7e1c0f7ea3276432f065ae775082",
+    "git_dirty": true,
+    "bert_score_version": "0.3.13",
+    "torch_version": "2.11.0",
+    "transformers_version": "4.46.3"
+  },
+  "detail_csv": "D:\\Text_Summarization\\notebooks\\results\\official\\validation\\bertscore_detail_20260603_093323.csv"
+}
