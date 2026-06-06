@@ -423,6 +423,7 @@ export default function App() {
               selectedId={activeId || null}
               searchQuery={searchQuery}
               onSelect={setActiveId}
+              onDelete={onDeleteSession}
               onNewSummary={() => setNewModalOpen(true)}
               onUploadFile={onUploadFile}
               onNewSummaryFromFile={onNewSummaryFromFile}

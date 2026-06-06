@@ -10,6 +10,7 @@ type Props = {
   selectedId: string | null;
   searchQuery: string;
   onSelect: (sessionId: string) => void;
+  onDelete?: (sessionId: string) => void;
   onNewSummary: () => void;
   onUploadFile?: (file: File) => void;
   onNewSummaryFromFile?: (file: File, preset: LengthPresetId) => void;
@@ -130,6 +131,7 @@ export function DocumentListPanel({
   selectedId,
   searchQuery,
   onSelect,
+  onDelete,
   onNewSummary,
   onUploadFile,
   onNewSummaryFromFile,
@@ -222,55 +224,73 @@ export function DocumentListPanel({
             ) : null}
             {filtered.map((doc) => {
               const selected = doc.sessionId === selectedId;
+              const canDelete = doc.status !== "processing" && !!onDelete;
               return (
-                <button
-                  key={doc.sessionId}
-                  type="button"
-                  onClick={() => onSelect(doc.sessionId)}
-                  className={`flex w-full items-center gap-3 rounded-xl p-3.5 text-left transition-all duration-150 active:scale-[0.995] ${
-                    selected
-                      ? "ambient-shadow border border-primary/30 bg-surface-container-lowest ring-1 ring-primary/20"
-                      : "border border-outline-variant bg-surface-container-lowest hover:border-primary/30 hover:bg-white"
-                  }`}
-                >
-                  <div
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
+                <div key={doc.sessionId} className="group relative">
+                  <button
+                    type="button"
+                    onClick={() => onSelect(doc.sessionId)}
+                    className={`flex w-full items-center gap-3 rounded-xl p-3.5 text-left transition-all duration-150 active:scale-[0.995] ${
+                      canDelete ? "pr-10" : ""
+                    } ${
                       selected
-                        ? "bg-primary/10 text-primary"
-                        : "bg-surface-container text-on-surface-variant"
+                        ? "ambient-shadow border border-primary/30 bg-surface-container-lowest ring-1 ring-primary/20"
+                        : "border border-outline-variant bg-surface-container-lowest hover:border-primary/30 hover:bg-white"
                     }`}
                   >
-                    {doc.status === "processing" ? (
-                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                    ) : (
-                      <MaterialIcon name={doc.icon} size="sm" />
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="truncate text-sm font-semibold text-on-surface">{doc.title}</h3>
-                    <div className="mt-1 flex items-center gap-3">
-                      <span className="text-xs text-on-surface-variant">{doc.dateLabel}</span>
-                      <span className="rounded-md bg-surface-container px-1.5 py-0.5 text-[10px] font-bold text-on-surface-variant">
-                        {doc.formatLabel}
-                      </span>
+                    <div
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
+                        selected
+                          ? "bg-primary/10 text-primary"
+                          : "bg-surface-container text-on-surface-variant"
+                      }`}
+                    >
                       {doc.status === "processing" ? (
-                        <span className="text-[10px] text-primary">Đang xử lý…</span>
-                      ) : null}
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                      ) : (
+                        <MaterialIcon name={doc.icon} size="sm" />
+                      )}
                     </div>
-                  </div>
-                  <div className="flex shrink-0 flex-col items-end gap-1.5">
-                    {doc.compressionLabel ? (
-                      <span
-                        className={`rounded-md px-2 py-0.5 text-[10px] font-bold ${statusBadgeClass(doc.status)}`}
-                      >
-                        {doc.compressionLabel}
+                    <div className="min-w-0 flex-1">
+                      <h3 className="truncate text-sm font-semibold text-on-surface">{doc.title}</h3>
+                      <div className="mt-1 flex items-center gap-3">
+                        <span className="text-xs text-on-surface-variant">{doc.dateLabel}</span>
+                        <span className="rounded-md bg-surface-container px-1.5 py-0.5 text-[10px] font-bold text-on-surface-variant">
+                          {doc.formatLabel}
+                        </span>
+                        {doc.status === "processing" ? (
+                          <span className="text-[10px] text-primary">Đang xử lý…</span>
+                        ) : null}
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 flex-col items-end gap-1.5 transition-opacity duration-150 group-hover:opacity-0">
+                      {doc.compressionLabel ? (
+                        <span
+                          className={`rounded-md px-2 py-0.5 text-[10px] font-bold ${statusBadgeClass(doc.status)}`}
+                        >
+                          {doc.compressionLabel}
+                        </span>
+                      ) : null}
+                      <span className="text-[10px] text-outline">
+                        {doc.readMinutes != null ? `${doc.readMinutes} phút đọc` : "—"}
                       </span>
-                    ) : null}
-                    <span className="text-[10px] text-outline">
-                      {doc.readMinutes != null ? `${doc.readMinutes} phút đọc` : "—"}
-                    </span>
-                  </div>
-                </button>
+                    </div>
+                  </button>
+
+                  {canDelete ? (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(doc.sessionId);
+                      }}
+                      aria-label="Xóa tài liệu"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-on-surface-variant opacity-0 transition-all duration-150 hover:bg-red-50 hover:text-red-500 group-hover:opacity-100"
+                    >
+                      <MaterialIcon name="delete" size="sm" />
+                    </button>
+                  ) : null}
+                </div>
               );
             })}
           </div>
