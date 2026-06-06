@@ -1,33 +1,33 @@
-/* Legacy CSS — giữ lại biến dự phòng, không import (tailwind.css là nguồn chính). */
+/* Legacy CSS — variables dự phòng, không import (tailwind.css là nguồn chính). */
 
 :root {
-  --font: "Inter", system-ui, -apple-system, sans-serif;
-  --text: #171717;
-  --text-muted: #737373;
-  --bg: #fafafa;
+  --font: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --text: #111827;
+  --text-muted: #6b7280;
+  --bg: #f9fafb;
   --surface: #ffffff;
-  --border: #e5e5e5;
-  --accent: #171717;
-  --accent-soft: #f5f5f5;
-  --danger: #dc2626;
+  --border: #e5e7eb;
+  --accent: #1d4ed8;
+  --accent-soft: #eff6ff;
+  --danger: #b91c1c;
   --danger-bg: #fef2f2;
-  --ok: #059669;
-  --radius: 24px;
-  --radius-md: 12px;
-  --radius-sm: 8px;
+  --ok: #15803d;
+  --radius: 16px;
+  --radius-md: 10px;
+  --radius-sm: 6px;
   --max-w: 42rem;
   --header-h: 3.25rem;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --text: #fafafa;
-    --text-muted: #a3a3a3;
-    --bg: #0a0a0a;
-    --surface: #171717;
-    --border: #262626;
-    --accent: #fafafa;
-    --accent-soft: #262626;
+    --text: #f9fafb;
+    --text-muted: #9ca3af;
+    --bg: #111827;
+    --surface: #1f2937;
+    --border: #374151;
+    --accent: #60a5fa;
+    --accent-soft: #1e3a8a;
     --danger-bg: rgba(127, 29, 29, 0.4);
   }
 }

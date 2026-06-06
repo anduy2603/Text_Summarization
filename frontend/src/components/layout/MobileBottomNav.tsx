@@ -16,7 +16,7 @@ export function MobileBottomNav({ active, onChange }: Props) {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 z-50 flex w-full items-center justify-around rounded-t-xl border-t border-outline-variant bg-surface px-4 py-2 shadow-lg lg:hidden">
+    <nav className="fixed bottom-0 left-0 z-50 flex w-full items-center justify-around border-t border-outline-variant bg-surface-container-lowest px-2 py-1.5 lg:hidden">
       {items.map((item) => {
         const isActive = active === item.id;
         return (
@@ -24,14 +24,18 @@ export function MobileBottomNav({ active, onChange }: Props) {
             key={item.id}
             type="button"
             onClick={() => onChange(item.id)}
-            className={`flex flex-col items-center justify-center rounded-xl px-4 py-1 transition-colors ${
+            className={`flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl py-1.5 transition-all duration-150 active:scale-[0.95] ${
               isActive
-                ? "bg-primary-container text-on-primary-container"
-                : "text-on-surface-variant"
+                ? "text-primary"
+                : "text-on-surface-variant hover:text-on-surface"
             }`}
           >
-            <MaterialIcon name={item.icon} size="sm" />
-            <span className="text-xs font-medium">{item.label}</span>
+            <div className={`rounded-xl px-4 py-1 transition-colors ${isActive ? "bg-primary-container" : ""}`}>
+              <MaterialIcon name={item.icon} size="sm" />
+            </div>
+            <span className={`text-[10px] font-semibold ${isActive ? "text-primary" : "text-on-surface-variant"}`}>
+              {item.label}
+            </span>
           </button>
         );
       })}

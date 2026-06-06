@@ -3,6 +3,7 @@ import { fetchEngines, fetchHealth, type SummarizeOptions } from "./api";
 import { ConfirmDialog } from "./components/ConfirmDialog";
 import { EngineCompareModal } from "./components/EngineCompareModal";
 import { HistoryDrawer } from "./components/HistoryDrawer";
+import { StatsPage } from "./components/StatsPage";
 import { DocumentListPanel } from "./components/layout/DocumentListPanel";
 import { MobileBottomNav, type MobileTab } from "./components/layout/MobileBottomNav";
 import { ProjectSidebar } from "./components/layout/ProjectSidebar";
@@ -63,6 +64,7 @@ export default function App() {
   const [newModalOpen, setNewModalOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [compareOpen, setCompareOpen] = useState(false);
+  const [statsOpen, setStatsOpen] = useState(false);
   const [mobileTab, setMobileTab] = useState<MobileTab>("home");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
@@ -311,7 +313,7 @@ export default function App() {
         onCompare={() => setCompareOpen(true)}
       />
 
-      <main className="flex min-h-0 flex-1 pt-16 pb-20 lg:pb-0">
+      <main className="flex min-h-0 flex-1 overflow-hidden pt-16 pb-20 lg:pb-0">
         {(mobileTab === "home" || mobileTab === "projects") && (
           <ProjectSidebar
             projects={projects}
@@ -322,13 +324,20 @@ export default function App() {
               const first = sessionsForProject(sessions, id)[0];
               setActiveId(first?.id ?? "");
               setMobileTab("home");
+              setStatsOpen(false);
             }}
-            onNewSummary={() => setNewModalOpen(true)}
+            onNewSummary={() => { setStatsOpen(false); setNewModalOpen(true); }}
             onOpenHistory={() => setHistoryOpen(true)}
+            onOpenStats={() => setStatsOpen((v) => !v)}
+            statsActive={statsOpen}
           />
         )}
 
-        {mobileTab === "home" && (
+        {mobileTab === "home" && statsOpen ? (
+          <StatsPage sessions={allWithContent} />
+        ) : null}
+
+        {mobileTab === "home" && !statsOpen && (
           <>
             <DocumentListPanel
               projectName={activeProject?.name ?? "Dự án"}
@@ -360,8 +369,8 @@ export default function App() {
                       setActiveId(s.id);
                       setMobileTab("home");
                     }}
-                    className={`w-full rounded-xl border px-4 py-3 text-left ${
-                      s.id === activeId ? "border-primary bg-primary-fixed" : "border-outline-variant bg-white"
+                    className={`w-full rounded-xl border px-4 py-3 text-left transition-all active:scale-[0.99] ${
+                      s.id === activeId ? "border-primary/30 bg-primary-fixed" : "border-outline-variant bg-surface-container-lowest"
                     }`}
                   >
                     <div className="truncate text-sm font-medium">{s.title}</div>
@@ -376,8 +385,8 @@ export default function App() {
         )}
 
         {mobileTab === "projects" && (
-          <section className="flex flex-1 flex-col gap-2 overflow-y-auto bg-surface-container-low p-4 lg:hidden">
-            <p className="px-2 text-xs font-bold uppercase tracking-wider text-outline">Dự án của bạn</p>
+          <section className="flex flex-1 flex-col gap-1.5 overflow-y-auto bg-background p-4 lg:hidden">
+            <p className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-wider text-outline">Dự án của bạn</p>
             {projects.map((p) => (
               <button
                 key={p.id}
@@ -388,34 +397,37 @@ export default function App() {
                   setActiveId(first?.id ?? "");
                   setMobileTab("home");
                 }}
-                className={`flex items-center gap-3 rounded-lg px-3 py-3 text-left ${
-                  p.id === activeProjectId ? "active-project" : "bg-white text-on-surface-variant"
+                className={`flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-all active:scale-[0.98] ${
+                  p.id === activeProjectId ? "active-project" : "bg-surface-container-lowest text-on-surface-variant"
                 }`}
               >
-                <span className="text-sm font-medium">{p.name}</span>
+                <span className="text-sm font-semibold">{p.name}</span>
                 <span className="ml-auto text-xs text-outline">{docCountByProject[p.id] ?? 0}</span>
               </button>
             ))}
             <button
               type="button"
               onClick={() => setNewModalOpen(true)}
-              className="mt-4 rounded-xl bg-primary-container py-3 text-sm font-medium text-on-primary-container"
+              className="mt-3 rounded-xl bg-primary py-3 text-sm font-semibold text-white transition-all active:scale-[0.97]"
             >
-              + Tải tệp tóm tắt
+              Tóm tắt tài liệu mới
             </button>
           </section>
         )}
 
         {mobileTab === "profile" && (
           <section className="flex flex-1 flex-col items-center justify-center gap-4 p-8 lg:hidden">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary-container text-xl font-bold text-on-primary-container">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-container text-xl font-bold text-on-primary-container">
               VS
             </div>
-            <p className="text-sm text-on-surface-variant">VietSum · Đa định dạng · Tiếng Việt</p>
+            <div className="text-center">
+              <p className="text-sm font-semibold text-on-surface">VietSum</p>
+              <p className="text-xs text-on-surface-variant">Tóm tắt đa định dạng · Tiếng Việt</p>
+            </div>
             <button
               type="button"
               onClick={() => setSettingsOpen(true)}
-              className="rounded-xl bg-primary px-6 py-2.5 text-sm font-medium text-white"
+              className="rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-white transition-all active:scale-[0.97]"
             >
               Cài đặt
             </button>

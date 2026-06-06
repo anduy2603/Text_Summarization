@@ -10,13 +10,18 @@ type Props = {
 
 export function TopNavBar({ apiOk, searchQuery, onSearchChange, onSettings, onCompare }: Props) {
   return (
-    <header className="fixed top-0 left-0 z-50 flex h-16 w-full items-center justify-between border-b border-outline-variant bg-surface px-4 md:px-8">
+    <header className="fixed top-0 left-0 z-50 flex h-16 w-full items-center justify-between border-b border-outline-variant bg-surface-container-lowest px-4 md:px-8">
       <div className="flex items-center gap-6 md:gap-8">
-        <span className="text-xl font-bold text-primary">VietSum</span>
-        <nav className="hidden items-center gap-6 md:flex">
+        <div className="flex items-center gap-2">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
+            <MaterialIcon name="summarize" size="sm" className="text-white" />
+          </div>
+          <span className="text-[1.05rem] font-bold tracking-tight text-on-surface">VietSum</span>
+        </div>
+        <nav className="hidden items-center gap-1 md:flex">
           <a
             href="#"
-            className="border-b-2 border-primary py-5 text-sm font-medium tracking-wide text-primary"
+            className="rounded-lg px-3 py-1.5 text-sm font-semibold text-primary transition-colors hover:bg-primary-container/40"
             onClick={(e) => e.preventDefault()}
           >
             Tài liệu
@@ -25,7 +30,7 @@ export function TopNavBar({ apiOk, searchQuery, onSearchChange, onSettings, onCo
             <button
               type="button"
               onClick={onCompare}
-              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-on-surface-variant transition-colors hover:bg-surface-container hover:text-primary"
+              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface active:scale-[0.97]"
             >
               <MaterialIcon name="compare" size="sm" />
               So sánh Engine
@@ -34,9 +39,9 @@ export function TopNavBar({ apiOk, searchQuery, onSearchChange, onSettings, onCo
         </nav>
       </div>
 
-      <div className="flex items-center gap-2 md:gap-4">
+      <div className="flex items-center gap-2 md:gap-3">
         {apiOk === false ? (
-          <span className="rounded-full bg-error/10 px-2 py-0.5 text-xs font-medium text-error">
+          <span className="rounded-md bg-error/10 px-2.5 py-1 text-xs font-medium text-error">
             Offline
           </span>
         ) : null}
@@ -50,21 +55,21 @@ export function TopNavBar({ apiOk, searchQuery, onSearchChange, onSettings, onCo
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Tìm kiếm tài liệu..."
-            className="w-48 rounded-full border border-outline-variant bg-surface-container-low py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 md:w-64"
+            placeholder="Tìm tài liệu..."
+            className="w-44 rounded-lg border border-outline-variant bg-surface-container-lowest py-1.5 pl-9 pr-4 text-sm transition-colors focus:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/15 md:w-56"
           />
         </div>
         <button
           type="button"
-          className="rounded-full p-2 text-on-surface-variant transition-colors hover:bg-surface-container"
+          className="rounded-lg p-1.5 text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface active:scale-[0.95]"
           aria-label="Cài đặt"
           onClick={onSettings}
         >
           <MaterialIcon name="settings" size="sm" />
         </button>
         <div
-          className="ml-1 flex h-8 w-8 items-center justify-center rounded-full border border-outline-variant bg-primary-container text-xs font-bold text-on-primary-container"
-          title="Người dùng"
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-outline-variant bg-primary-container text-xs font-bold text-on-primary-container"
+          title="VietSum"
         >
           VS
         </div>
