@@ -152,7 +152,11 @@ def summarize_with_hybrid(
         chunk_summaries: list[str] = []
         chunk_extractive: list[str] = []
         chunk_meta: list[dict[str, Any]] = []
-        per_chunk_k = max(2, min(4, target_k))
+        n_chunks = max(1, len(chunks))
+        # Scale per-chunk selection so the candidate pool is proportional to target_k.
+        # ceil(target_k / n_chunks) + 1 gives each chunk enough representatives,
+        # capped at 8 to limit ViT5 context overhead.
+        per_chunk_k = max(2, min(8, (target_k + n_chunks - 1) // n_chunks + 1))
         for idx, chunk in enumerate(chunks):
             picked, chunk_engine_meta = _textrank_on_text(
                 chunk,

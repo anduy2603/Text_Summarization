@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-from functools import lru_cache
 from typing import Any
 
 from app.core.config import settings
@@ -112,8 +111,16 @@ def resolve_generation_length_bounds(
     return max_new_tokens, None, meta
 
 
-@lru_cache(maxsize=1)
+# Module-level cache — only populated on successful load; never caches failures.
+# Use _clear_vit5_runtime_cache() in tests or to force a reload after env changes.
+_vit5_runtime_cache: tuple[Any, Any, Any, Any] | None = None
+
+
 def _get_vit5_runtime() -> tuple[Any, Any, Any, Any]:
+    global _vit5_runtime_cache
+    if _vit5_runtime_cache is not None:
+        return _vit5_runtime_cache
+
     _check_transformers_version()
     allow_download = os.environ.get(VIT5_ALLOW_DOWNLOAD_ENV) == "1"
     if not allow_download:
@@ -152,7 +159,14 @@ def _get_vit5_runtime() -> tuple[Any, Any, Any, Any]:
             f"Check local HuggingFace cache. {download_hint}"
         ) from exc
 
-    return tokenizer, model, torch, device
+    _vit5_runtime_cache = (tokenizer, model, torch, device)
+    return _vit5_runtime_cache
+
+
+def _clear_vit5_runtime_cache() -> None:
+    """Reset the runtime cache, forcing a reload on next call. Used in tests."""
+    global _vit5_runtime_cache
+    _vit5_runtime_cache = None
 
 
 def summarize_with_vit5(

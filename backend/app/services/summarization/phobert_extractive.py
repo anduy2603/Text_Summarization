@@ -47,8 +47,16 @@ def _load_phobert_online() -> tuple[Any, Any]:
     return tokenizer, model
 
 
-@lru_cache(maxsize=1)
+# Module-level cache — only populated on successful load; never caches failures.
+# Use _clear_phobert_runtime_cache() in tests or to force a reload after env changes.
+_phobert_runtime_cache: tuple[Any, Any, Any, Any] | None = None
+
+
 def _get_phobert_runtime() -> tuple[Any, Any, Any, Any]:
+    global _phobert_runtime_cache
+    if _phobert_runtime_cache is not None:
+        return _phobert_runtime_cache
+
     allow_download = os.environ.get(PHOBERT_ALLOW_DOWNLOAD_ENV) == "1"
     if not allow_download:
         _set_huggingface_offline()
@@ -86,7 +94,14 @@ def _get_phobert_runtime() -> tuple[Any, Any, Any, Any]:
             f"Check local HuggingFace cache. {download_hint}"
         ) from exc
 
-    return tokenizer, model, torch, device
+    _phobert_runtime_cache = (tokenizer, model, torch, device)
+    return _phobert_runtime_cache
+
+
+def _clear_phobert_runtime_cache() -> None:
+    """Reset the runtime cache, forcing a reload on next call. Used in tests."""
+    global _phobert_runtime_cache
+    _phobert_runtime_cache = None
 
 
 def _encode_sentences(sentences: list[str]) -> np.ndarray:
