@@ -30,6 +30,8 @@ import {
   DEFAULT_PROJECT_ID,
   ensureSessionProject,
   loadProjects,
+  newProjectId,
+  saveProjects,
   sessionToDocumentItem,
   sessionsForProject,
 } from "./lib/workspace";
@@ -50,7 +52,7 @@ function patchSession(
 }
 
 export default function App() {
-  const [projects] = useState<Project[]>(() => loadProjects());
+  const [projects, setProjects] = useState<Project[]>(() => loadProjects());
   const [activeProjectId, setActiveProjectId] = useState<string>(
     () => loadProjects()[0]?.id ?? DEFAULT_PROJECT_ID,
   );
@@ -116,6 +118,10 @@ export default function App() {
   useEffect(() => {
     saveSessions(allWithContent);
   }, [allWithContent]);
+
+  useEffect(() => {
+    saveProjects(projects);
+  }, [projects]);
 
   useEffect(() => {
     if (!activeId && projectSessions.length > 0) {
@@ -323,6 +329,53 @@ export default function App() {
     }
   }, [pendingDeleteId, sessions, activeId, activeProjectId]);
 
+  // ── Project CRUD ──────────────────────────────────────────────────
+  const onCreateProject = useCallback((name: string) => {
+    const p: Project = { id: newProjectId(), name: name.trim(), createdAt: Date.now() };
+    setProjects((prev) => [...prev, p]);
+    setActiveProjectId(p.id);
+    setActiveId("");
+    setStatsOpen(false);
+  }, []);
+
+  const onRenameProject = useCallback((id: string, name: string) => {
+    setProjects((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, name: name.trim() } : p)),
+    );
+  }, []);
+
+  const [pendingDeleteProjectId, setPendingDeleteProjectId] = useState<string | null>(null);
+
+  const onDeleteProject = useCallback((id: string) => {
+    if (id === DEFAULT_PROJECT_ID) return; // cannot delete default
+    setPendingDeleteProjectId(id);
+  }, []);
+
+  const confirmDeleteProject = useCallback(() => {
+    if (!pendingDeleteProjectId) return;
+    const id = pendingDeleteProjectId;
+    setPendingDeleteProjectId(null);
+    // Move all sessions in this project to the default project
+    setSessions((prev) =>
+      prev.map((s) =>
+        (s.projectId ?? DEFAULT_PROJECT_ID) === id
+          ? { ...s, projectId: DEFAULT_PROJECT_ID }
+          : s,
+      ),
+    );
+    setProjects((prev) => prev.filter((p) => p.id !== id));
+    if (activeProjectId === id) {
+      setActiveProjectId(DEFAULT_PROJECT_ID);
+      setActiveId("");
+    }
+  }, [pendingDeleteProjectId, activeProjectId]);
+
+  const pendingDeleteProject = projects.find((p) => p.id === pendingDeleteProjectId);
+  const pendingDeleteProjectDocCount = pendingDeleteProjectId
+    ? (docCountByProject[pendingDeleteProjectId] ?? 0)
+    : 0;
+  // ──────────────────────────────────────────────────────────────────
+
   const showMobilePreview = mobileTab === "home" && Boolean(selectedSession);
 
   return (
@@ -352,6 +405,9 @@ export default function App() {
             onOpenHistory={() => setHistoryOpen(true)}
             onOpenStats={() => setStatsOpen((v) => !v)}
             statsActive={statsOpen}
+            onCreateProject={onCreateProject}
+            onRenameProject={onRenameProject}
+            onDeleteProject={onDeleteProject}
           />
         )}
 
@@ -496,6 +552,18 @@ export default function App() {
         message={`Xóa «${sessions.find((s) => s.id === pendingDeleteId)?.title ?? ""}» khỏi lịch sử? Hành động này không thể hoàn tác.`}
         onConfirm={confirmDelete}
         onCancel={() => setPendingDeleteId(null)}
+      />
+
+      <ConfirmDialog
+        open={!!pendingDeleteProjectId}
+        title="Xóa dự án"
+        message={
+          pendingDeleteProjectDocCount > 0
+            ? `Xóa dự án «${pendingDeleteProject?.name ?? ""}»? ${pendingDeleteProjectDocCount} tài liệu sẽ được chuyển về "Dự án của tôi".`
+            : `Xóa dự án «${pendingDeleteProject?.name ?? ""}»? Hành động này không thể hoàn tác.`
+        }
+        onConfirm={confirmDeleteProject}
+        onCancel={() => setPendingDeleteProjectId(null)}
       />
 
       <NewSummaryModal
