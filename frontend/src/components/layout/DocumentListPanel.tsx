@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { LENGTH_PRESETS, type LengthPresetId } from "../../constants";
 import type { DocumentListItem } from "../../types/workspace";
 import { FileUploadDropzone } from "../FileUploadDropzone";
 import { MaterialIcon } from "../icons/MaterialIcon";
@@ -10,6 +12,7 @@ type Props = {
   onSelect: (sessionId: string) => void;
   onNewSummary: () => void;
   onUploadFile?: (file: File) => void;
+  onNewSummaryFromFile?: (file: File, preset: LengthPresetId) => void;
   uploadBusy?: boolean;
 };
 
@@ -20,6 +23,107 @@ function statusBadgeClass(status: DocumentListItem["status"]): string {
   return "bg-yellow-50 text-yellow-700";
 }
 
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function fileIcon(name: string): string {
+  const ext = name.split(".").pop()?.toLowerCase();
+  if (ext === "pdf") return "picture_as_pdf";
+  if (ext === "docx" || ext === "doc") return "article";
+  return "text_snippet";
+}
+
+function PendingFileCard({
+  file,
+  preset,
+  onPresetChange,
+  onConfirm,
+  onCancel,
+  busy,
+}: {
+  file: File;
+  preset: LengthPresetId;
+  onPresetChange: (p: LengthPresetId) => void;
+  onConfirm: () => void;
+  onCancel: () => void;
+  busy: boolean;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-5 px-4 py-12">
+      {/* File card */}
+      <div className="flex w-full max-w-md items-center gap-3 rounded-2xl border border-primary/20 bg-primary-fixed px-4 py-3.5">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+          <MaterialIcon name={fileIcon(file.name)} size="sm" className="text-primary" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-on-surface">{file.name}</p>
+          <p className="text-xs text-on-surface-variant">{formatFileSize(file.size)}</p>
+        </div>
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={busy}
+          className="shrink-0 rounded-lg p-1 text-on-surface-variant transition-colors hover:bg-primary/10 hover:text-on-surface"
+          aria-label="Hủy"
+        >
+          <MaterialIcon name="close" size="sm" />
+        </button>
+      </div>
+
+      {/* Preset selector */}
+      <div className="w-full max-w-md">
+        <p className="mb-2.5 text-center text-xs font-semibold text-on-surface-variant">
+          Chọn độ dài bản tóm tắt
+        </p>
+        <div className="flex gap-2">
+          {LENGTH_PRESETS.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              disabled={busy}
+              onClick={() => onPresetChange(p.id)}
+              className={`flex flex-1 flex-col items-center rounded-xl border px-3 py-3 transition-all duration-150 active:scale-[0.97] ${
+                preset === p.id
+                  ? "border-primary bg-primary text-white shadow-sm"
+                  : "border-outline-variant bg-surface-container-lowest text-on-surface-variant hover:border-primary/40 hover:bg-surface-container"
+              }`}
+            >
+              <span className="text-sm font-bold">{p.label}</span>
+              <span className={`text-[10px] ${preset === p.id ? "text-white/80" : "text-outline"}`}>
+                ~{p.sentences} câu
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex w-full max-w-md flex-col gap-2">
+        <button
+          type="button"
+          disabled={busy}
+          onClick={onConfirm}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-primary/90 active:scale-[0.97] disabled:opacity-60"
+        >
+          <MaterialIcon name="auto_awesome" size="sm" />
+          Bắt đầu tóm tắt
+        </button>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={onCancel}
+          className="w-full rounded-xl py-2.5 text-xs font-medium text-on-surface-variant transition-colors hover:text-on-surface"
+        >
+          Hủy, chọn tệp khác
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function DocumentListPanel({
   projectName,
   documents,
@@ -28,8 +132,12 @@ export function DocumentListPanel({
   onSelect,
   onNewSummary,
   onUploadFile,
+  onNewSummaryFromFile,
   uploadBusy = false,
 }: Props) {
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [pendingPreset, setPendingPreset] = useState<LengthPresetId>("medium");
+
   const q = searchQuery.trim().toLowerCase();
   const filtered = q
     ? documents.filter(
@@ -38,6 +146,21 @@ export function DocumentListPanel({
           d.formatLabel.toLowerCase().includes(q),
       )
     : documents;
+
+  const handleFilePicked = (file: File) => {
+    if (onNewSummaryFromFile) {
+      setPendingPreset("medium");
+      setPendingFile(file);
+    } else {
+      onUploadFile?.(file);
+    }
+  };
+
+  const handleConfirm = () => {
+    if (!pendingFile) return;
+    onNewSummaryFromFile?.(pendingFile, pendingPreset);
+    setPendingFile(null);
+  };
 
   return (
     <section className="flex min-w-0 flex-1 flex-col bg-background">
@@ -65,32 +188,38 @@ export function DocumentListPanel({
 
       <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-5">
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center px-4 py-16 text-center">
-            {onUploadFile ? (
-              <FileUploadDropzone
-                disabled={uploadBusy}
-                onFile={onUploadFile}
-                onTextFallback={onNewSummary}
+          <div className="flex flex-col items-center justify-center px-4 py-4 text-center">
+            {pendingFile ? (
+              <PendingFileCard
+                file={pendingFile}
+                preset={pendingPreset}
+                onPresetChange={setPendingPreset}
+                onConfirm={handleConfirm}
+                onCancel={() => setPendingFile(null)}
+                busy={uploadBusy}
               />
             ) : (
-              <>
-                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-container">
-                  <MaterialIcon name="folder_open" className="text-outline" size="lg" />
-                </div>
-                <p className="mb-1 text-sm font-semibold text-on-surface">Chưa có tài liệu</p>
-                <p className="mb-5 text-xs text-on-surface-variant">Tải tệp để bắt đầu tóm tắt</p>
-                <button
-                  type="button"
-                  onClick={onNewSummary}
-                  className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-primary/90 active:scale-[0.97]"
-                >
-                  Tải tệp lên
-                </button>
-              </>
+              <FileUploadDropzone
+                disabled={uploadBusy}
+                onFile={handleFilePicked}
+                onTextFallback={onNewSummary}
+              />
             )}
           </div>
         ) : (
           <div className="flex flex-col gap-2">
+            {pendingFile ? (
+              <div className="mb-2 rounded-2xl border border-outline-variant bg-surface-container-lowest">
+                <PendingFileCard
+                  file={pendingFile}
+                  preset={pendingPreset}
+                  onPresetChange={setPendingPreset}
+                  onConfirm={handleConfirm}
+                  onCancel={() => setPendingFile(null)}
+                  busy={uploadBusy}
+                />
+              </div>
+            ) : null}
             {filtered.map((doc) => {
               const selected = doc.sessionId === selectedId;
               return (
@@ -111,7 +240,11 @@ export function DocumentListPanel({
                         : "bg-surface-container text-on-surface-variant"
                     }`}
                   >
-                    <MaterialIcon name={doc.icon} size="sm" />
+                    {doc.status === "processing" ? (
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    ) : (
+                      <MaterialIcon name={doc.icon} size="sm" />
+                    )}
                   </div>
                   <div className="min-w-0 flex-1">
                     <h3 className="truncate text-sm font-semibold text-on-surface">{doc.title}</h3>
@@ -120,6 +253,9 @@ export function DocumentListPanel({
                       <span className="rounded-md bg-surface-container px-1.5 py-0.5 text-[10px] font-bold text-on-surface-variant">
                         {doc.formatLabel}
                       </span>
+                      {doc.status === "processing" ? (
+                        <span className="text-[10px] text-primary">Đang xử lý…</span>
+                      ) : null}
                     </div>
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1.5">

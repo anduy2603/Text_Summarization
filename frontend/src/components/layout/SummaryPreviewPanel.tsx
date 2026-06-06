@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { exportSummaryAsDocx } from "../../api";
+import { LENGTH_PRESETS, type LengthPresetId } from "../../constants";
 import { ENGINE_LABELS } from "../../lib/engineLabels";
 import { formatDocumentMetaLine } from "../../lib/documentRecord";
 import { getRating, setRating, type Rating } from "../../lib/ratings";
@@ -12,9 +13,10 @@ type Props = {
   session: ChatSession | null;
   processing: boolean;
   layout?: "sidebar" | "sheet";
+  onRetry?: (sessionId: string, preset: LengthPresetId) => void;
 };
 
-export function SummaryPreviewPanel({ session, processing, layout = "sidebar" }: Props) {
+export function SummaryPreviewPanel({ session, processing, layout = "sidebar", onRetry }: Props) {
   const wrapperClass =
     layout === "sheet"
       ? "flex min-h-0 flex-1 flex-col"
@@ -30,9 +32,12 @@ export function SummaryPreviewPanel({ session, processing, layout = "sidebar" }:
   const doc = session?.document;
   const summary = doc?.summary?.trim() ?? assistant?.content?.trim() ?? "";
   const stats = assistant?.stats ?? null;
-  const bullets = summary ? splitSummaryBullets(summary) : [];
-  const detail =
-    bullets.length > 0 && summary.length > bullets.join(" ").length + 40 ? summary : null;
+  const isHybrid = stats?.engineName === "hybrid";
+  const parsed = summary ? parseHybridSummary(summary) : null;
+  const bullets = summary
+    ? (parsed ? parsed.bullets : splitSummaryBullets(summary))
+    : [];
+  const hybridLead = parsed?.lead ?? null;
 
   if (!session) {
     return (
@@ -83,20 +88,12 @@ export function SummaryPreviewPanel({ session, processing, layout = "sidebar" }:
       </div>
 
       <div className={`flex-1 overflow-y-auto custom-scrollbar ${layout === "sheet" ? "p-4" : "p-5"}`}>
-        {layout === "sidebar" ? (
-          <div className="mb-5 flex h-24 w-full items-center justify-center rounded-xl border border-outline-variant/50 bg-surface-container">
-            <div className="flex flex-col items-center gap-1.5">
-              <MaterialIcon name="analytics" className="text-primary" size="lg" />
-              <span className="text-[10px] font-medium text-on-surface-variant">Phân tích văn bản</span>
-            </div>
-          </div>
-        ) : null}
-
-        <h2 className={`font-bold leading-snug text-on-surface ${layout === "sheet" ? "mb-3 text-sm" : "mb-4 text-lg"}`}>
+        <h2 className={`font-bold leading-snug text-on-surface ${layout === "sheet" ? "mb-3 text-sm" : "mb-3 text-lg"}`}>
           {session.title}
         </h2>
 
-        <div className="mb-4 flex flex-wrap gap-1.5">
+        {/* Metadata badges */}
+        <div className="mb-3 flex flex-wrap gap-1.5">
           {stats?.engineName ? (
             <Badge
               icon="memory"
@@ -104,17 +101,17 @@ export function SummaryPreviewPanel({ session, processing, layout = "sidebar" }:
               highlight
             />
           ) : null}
-          {stats?.compressionPct != null ? (
-            <Badge icon="compress" label={`${Math.round(stats.compressionPct)}% nén`} />
-          ) : null}
-          <Badge icon="schedule" label={`${estimateRead(summary)} phút đọc`} />
           {doc?.fileType ? <Badge icon="description" label={doc.fileType} /> : null}
+          {stats?.compressionPct != null ? (
+            <Badge icon="compress" label={`Nén ${Math.round(stats.compressionPct)}%`} />
+          ) : null}
           {doc && doc.selectedSentenceCount != null && doc.sourceSentenceCount != null ? (
             <Badge
               icon="format_list_numbered"
               label={`${doc.selectedSentenceCount}/${doc.sourceSentenceCount} câu`}
             />
           ) : null}
+          <Badge icon="schedule" label={`${estimateRead(summary)} phút đọc`} />
           {stats?.latencyMs != null ? (
             <Badge icon="bolt" label={`${stats.latencyMs} ms`} />
           ) : null}
@@ -128,29 +125,50 @@ export function SummaryPreviewPanel({ session, processing, layout = "sidebar" }:
           </p>
         ) : null}
 
-        <div className="space-y-2 leading-relaxed">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-outline">Điểm cốt lõi</p>
-          <ul className="space-y-2 pl-4 text-sm text-on-surface-variant">
-            {bullets.map((line, i) => (
-              <li key={i} className="flex gap-2">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary/50" />
-                <span>{line}</span>
-              </li>
-            ))}
-          </ul>
-          {detail && layout === "sidebar" ? (
+        {/* Summary content */}
+        <div className="space-y-3 leading-relaxed">
+          {isHybrid && hybridLead ? (
             <>
-              <p className="mt-4 text-[11px] font-semibold uppercase tracking-wide text-outline">
-                Phân tích chi tiết
-              </p>
-              <p className="line-clamp-4 text-sm text-on-surface-variant">{detail}</p>
+              <div>
+                <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-outline">
+                  Điểm cốt lõi
+                </p>
+                <p className="text-sm text-on-surface">{hybridLead}</p>
+              </div>
+              {bullets.length > 0 ? (
+                <div>
+                  <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-outline">
+                    Ý chính
+                  </p>
+                  <ul className="space-y-1.5">
+                    {bullets.map((line, i) => (
+                      <li key={i} className="flex gap-2 text-sm text-on-surface-variant">
+                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary/50" />
+                        <span>{line}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
             </>
-          ) : null}
+          ) : (
+            <ul className="space-y-2">
+              {bullets.map((line, i) => (
+                <li key={i} className="flex gap-2 text-sm text-on-surface-variant">
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary/50" />
+                  <span>{line}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
 
       {layout === "sidebar" ? (
-        <div className="border-t border-outline-variant bg-surface-container-low p-4">
+        <div className="border-t border-outline-variant bg-surface-container-low p-4 space-y-3">
+          {onRetry ? (
+            <RetryBar sessionId={session.id} onRetry={onRetry} />
+          ) : null}
           <ExportButtons title={session.title} summary={summary} />
         </div>
       ) : null}
@@ -249,6 +267,72 @@ function formatCreatedAt(ts: number): string {
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(ts));
+}
+
+function parseHybridSummary(text: string): { lead: string; bullets: string[] } | null {
+  if (!text.includes("Điểm cốt lõi:") && !text.includes("Ý chính:")) return null;
+  const parts = text.split(/\n+Ý chính:\s*\n*/);
+  const lead = (parts[0] ?? "")
+    .replace(/^Điểm cốt lõi:\s*\n*/i, "")
+    .trim();
+  const bullets = (parts[1] ?? "")
+    .split(/\n+/)
+    .map((l) => l.replace(/^[\s\-•*]+/, "").trim())
+    .filter(Boolean);
+  return { lead, bullets };
+}
+
+function RetryBar({
+  sessionId,
+  onRetry,
+}: {
+  sessionId: string;
+  onRetry: (id: string, preset: LengthPresetId) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div>
+      {open ? (
+        <div className="rounded-xl border border-outline-variant bg-surface-container p-3">
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-outline">
+            Tóm tắt lại với độ dài
+          </p>
+          <div className="flex gap-2">
+            {LENGTH_PRESETS.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => {
+                  onRetry(sessionId, p.id);
+                  setOpen(false);
+                }}
+                className="flex flex-1 flex-col items-center rounded-lg border border-outline-variant bg-surface-container-lowest py-2 text-xs font-semibold text-on-surface transition-all hover:border-primary/40 hover:bg-primary-fixed active:scale-[0.97]"
+              >
+                {p.label}
+                <span className="text-[10px] font-normal text-outline">~{p.sentences} câu</span>
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            className="mt-2 w-full text-center text-[10px] text-on-surface-variant hover:text-on-surface"
+          >
+            Hủy
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-outline-variant py-2 text-xs font-medium text-on-surface-variant transition-all hover:bg-surface-container hover:text-on-surface active:scale-[0.97]"
+        >
+          <MaterialIcon name="refresh" size="sm" />
+          Tóm tắt lại
+        </button>
+      )}
+    </div>
+  );
 }
 
 function RatingButtons({ sessionId }: { sessionId: string }) {

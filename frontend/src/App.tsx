@@ -275,9 +275,31 @@ export default function App() {
 
   const onUploadFile = useCallback(
     (file: File) => {
-      onNewSummary({ text: "", file }, "short");
+      onNewSummary({ text: "", file }, "medium");
     },
     [onNewSummary],
+  );
+
+  const onNewSummaryFromFile = useCallback(
+    (file: File, preset: LengthPresetId) => {
+      onNewSummary({ text: "", file }, preset);
+    },
+    [onNewSummary],
+  );
+
+  const onRetry = useCallback(
+    (sessionId: string, preset: LengthPresetId) => {
+      const session = sessions.find((s) => s.id === sessionId);
+      if (!session) return;
+      const userMsg = session.messages.find((m) => m.role === "user");
+      if (!userMsg) return;
+      let text = "";
+      if (userMsg.kind === "text") text = userMsg.content;
+      else if (userMsg.kind === "url") text = userMsg.url;
+      else return; // file-based: cannot retry without re-upload
+      void runSummarize(sessionId, { text, file: null }, preset);
+    },
+    [sessions, runSummarize],
   );
 
   const onDeleteSession = useCallback(
@@ -347,11 +369,13 @@ export default function App() {
               onSelect={setActiveId}
               onNewSummary={() => setNewModalOpen(true)}
               onUploadFile={onUploadFile}
+              onNewSummaryFromFile={onNewSummaryFromFile}
               uploadBusy={processingId !== null}
             />
             <SummaryPreviewPanel
               session={selectedSession}
               processing={processingId === activeId}
+              onRetry={onRetry}
             />
           </>
         )}
