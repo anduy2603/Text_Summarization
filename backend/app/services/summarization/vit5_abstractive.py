@@ -195,7 +195,13 @@ def summarize_with_vit5(
     )
     tokenizer, model, torch, device = _get_vit5_runtime()
 
-    model_input = text if text.endswith("</s>") else f"{text}</s>"
+    # VietAI/vit5-base-vietnews-summarization was fine-tuned with task prefix.
+    # Adding "vietnews: " signals the summarization task and improves subject
+    # identification on short/ambiguous inputs.
+    if text.startswith("vietnews:"):
+        model_input = text if text.endswith("</s>") else f"{text}</s>"
+    else:
+        model_input = f"vietnews: {text}</s>"
     encoded = tokenizer(
         model_input,
         return_tensors="pt",
