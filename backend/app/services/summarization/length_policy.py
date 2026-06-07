@@ -16,20 +16,19 @@ def resolve_target_k_from_policy(
     char_length: int,
 ) -> tuple[int, dict[str, Any]]:
     """
-    Scale output length by document size while respecting UI preset (requested_max_sentences).
+    Respect the user's requested sentence count exactly.
+    delta was removed — silently adding +1/+2 caused user to receive more
+    sentences than requested, undermining trust in length controls.
     """
     requested = max(1, int(requested_max_sentences))
     if char_length < _SHORT_DOC_CHARS:
         tier = "short"
-        delta = 0
     elif char_length < _MEDIUM_DOC_CHARS:
         tier = "medium"
-        delta = 1
     else:
         tier = "long"
-        delta = 2
 
-    k = min(requested + delta, _MAX_OUTPUT_SENTENCES)
+    k = min(requested, _MAX_OUTPUT_SENTENCES)
     if sentence_count > 0:
         k = min(k, sentence_count)
     k = max(1, k)
@@ -37,11 +36,10 @@ def resolve_target_k_from_policy(
     min_output_sentences = resolve_min_output_sentences(k, tier)
 
     return k, {
-        "length_policy": "preset_plus_doc_tier",
+        "length_policy": "user_requested_exact",
         "length_tier": tier,
         "requested_max_sentences": requested,
         "doc_char_length": char_length,
-        "doc_tier_delta": delta,
         "resolved_target_k": k,
         "min_output_sentences": min_output_sentences,
     }
