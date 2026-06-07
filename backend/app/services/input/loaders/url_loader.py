@@ -114,8 +114,9 @@ def load_url_text(url: str) -> tuple[str, str]:
             re.IGNORECASE,
         )
         for tag in soup.find_all(["div", "section", "ul", "ol", "aside", "figure"]):
-            classes = " ".join(tag.get("class") or [])
-            tag_id = tag.get("id") or ""
+            attrs = tag.attrs if tag.attrs else {}
+            classes = " ".join(attrs.get("class") or [])
+            tag_id = attrs.get("id") or ""
             if _JUNK_CLASS_PATTERNS.search(classes) or _JUNK_CLASS_PATTERNS.search(tag_id):
                 tag.decompose()
         # Try to narrow to main article content if a semantic landmark exists
