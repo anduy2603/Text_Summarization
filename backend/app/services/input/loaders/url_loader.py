@@ -103,9 +103,29 @@ def load_url_text(url: str) -> tuple[str, str]:
     body = _decompress_http_body(bytes(out), raw_content_encoding)
     if "html" in content_type or body.lstrip().startswith((b"<", b"<!DOCTYPE", b"<!doctype")):
         soup = BeautifulSoup(body, "lxml")
+        # Remove non-content structural tags
         for tag in soup(["script", "style", "noscript", "template", "header", "footer", "nav", "aside"]):
             tag.decompose()
-        text = _compact_lines(soup.get_text(separator="\n"))
+        # Remove common sidebar/related-article containers found on Vietnamese news sites
+        _JUNK_CLASS_PATTERNS = re.compile(
+            r"related|recommend|suggest|sidebar|widget|comment|social|share|"
+            r"tag|breadcrumb|pagination|ad|banner|promo|newsletter|follow|"
+            r"tin[-_]lien[-_]quan|xem[-_]them|cung[-_]chu[-_]de|bai[-_]viet[-_]lien[-_]quan",
+            re.IGNORECASE,
+        )
+        for tag in soup.find_all(True):
+            classes = " ".join(tag.get("class", []))
+            tag_id = tag.get("id", "")
+            if _JUNK_CLASS_PATTERNS.search(classes) or _JUNK_CLASS_PATTERNS.search(tag_id):
+                tag.decompose()
+        # Try to narrow to main article content if a semantic landmark exists
+        main_content = (
+            soup.find("article")
+            or soup.find(attrs={"role": "main"})
+            or soup.find("main")
+        )
+        target = main_content if main_content else soup
+        text = _compact_lines(target.get_text(separator="\n"))
         if not text:
             raise InputLoadError("URL contains no extractable text.")
         return text, content_type or "text/html"

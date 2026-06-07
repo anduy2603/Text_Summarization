@@ -23,6 +23,26 @@ _CAPTION_INLINE_RE = re.compile(
     flags=re.IGNORECASE | re.UNICODE,
 )
 
+# Timestamp / publication-date lines scraped from news HTML
+# e.g. "Thứ hai, 04/05/2026 - 06:00"  "Thứ 2, 12:30 ICT"  "08/06/2026 - 14:15"
+_TIMESTAMP_RE = re.compile(
+    r"^(?:thứ\s+(?:hai|ba|tư|năm|sáu|bảy|chủ\s+nhật),?\s*)?"
+    r"\d{1,2}[/\-]\d{1,2}(?:[/\-]\d{2,4})?(?:\s*[-–]\s*\d{1,2}:\d{2})?$",
+    flags=re.IGNORECASE | re.UNICODE,
+)
+
+# Very short headline-only fragments (≤ 12 words, no verb indicator)
+# Used to catch related-article titles scraped from news sidebars.
+# We only reject if the sentence has NO common Vietnamese verbal connectors.
+_HEADLINE_FRAG_RE = re.compile(
+    r"^[^.!?…]{10,120}$",   # no sentence-ending punctuation
+    flags=re.UNICODE,
+)
+_HAS_VERB_INDICATOR_RE = re.compile(
+    r"\b(?:là|đã|sẽ|đang|có|được|cho|với|về|trong|để|khi|nếu|vì|bởi|theo|qua|tại|từ|sau|trước)\b",
+    flags=re.IGNORECASE | re.UNICODE,
+)
+
 
 def _normalize_sentence_key(sentence: str) -> str:
     folded = unicodedata.normalize("NFC", sentence.strip().casefold())
@@ -43,6 +63,13 @@ def is_junk_sentence(sentence: str) -> bool:
     if _NOISE_LINE_RE.search(text) or _CAPTION_ONLY_RE.match(text) or _METADATA_ONLY_RE.match(text):
         return True
     if _CAPTION_INLINE_RE.search(text):
+        return True
+    # Reject timestamp / publication-date lines (e.g. "Thứ hai, 04/05/2026 - 06:00")
+    if _TIMESTAMP_RE.match(text):
+        return True
+    # Reject short headline fragments without verbal connectors
+    # (catches related-article titles scraped from news sidebars)
+    if _HEADLINE_FRAG_RE.match(text) and len(words) <= 12 and not _HAS_VERB_INDICATOR_RE.search(text):
         return True
     return False
 
