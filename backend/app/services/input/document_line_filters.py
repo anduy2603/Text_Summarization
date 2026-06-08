@@ -31,6 +31,13 @@ _METADATA_ONLY_RE = re.compile(
     flags=re.IGNORECASE | re.UNICODE,
 )
 
+# Inline caption in parentheses: "(Ảnh: Dân trí)", "(Nguồn: VnExpress/Thaco)"
+# Common in Vietnamese news DOCX/PDF exports and screen-captured articles.
+_INLINE_CAPTION_RE = re.compile(
+    r"^\s*[\(\[]\s*(?:ảnh|anh|hình|photo|image|nguồn|nguon|source|minh\s*họa)\s*:.{0,80}[\)\]]\s*$",
+    flags=re.IGNORECASE | re.UNICODE,
+)
+
 _MIN_CONTENT_LINE_CHARS = 12
 
 
@@ -52,6 +59,8 @@ def is_noise_line(line: str) -> bool:
     if _CAPTION_ONLY_RE.match(stripped):
         return True
     if _METADATA_ONLY_RE.match(stripped):
+        return True
+    if _INLINE_CAPTION_RE.match(stripped):
         return True
     return False
 

@@ -30,7 +30,7 @@ class Settings(BaseSettings):
 
     # TextRank selection
     textrank_mmr_lambda: float = 0.7
-    textrank_position_bias: float = 0.12
+    textrank_position_bias: float = 0.20
 
     # Hybrid (TextRank preselect → ViT5 rewrite; never pure ViT5 on full upload)
     hybrid_preselect_multiplier: float = 2.0
