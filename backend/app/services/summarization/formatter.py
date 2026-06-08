@@ -1,8 +1,55 @@
 from __future__ import annotations
 
+import re
+
 from app.schemas.common import SummarizeResponse
 from app.schemas.input import ProcessedInput
 from app.services.summarization.text_stats import repetition_rate
+
+# Trailing ellipsis / incomplete sentence markers
+_TRAILING_ELLIPSIS_RE = re.compile(r"\s*\.{2,}\s*$|…\s*$", re.UNICODE)
+# Bullet prefix left over from raw extraction
+_BULLET_PREFIX_RE = re.compile(r"^[-•*]\s+", re.UNICODE)
+
+
+def _clean_sentence(text: str) -> str:
+    """Clean a single sentence: strip bullets, incomplete endings, fix capitalization."""
+    t = _BULLET_PREFIX_RE.sub("", text).strip()
+    t = _TRAILING_ELLIPSIS_RE.sub("", t).strip()
+    # Capitalize first character (preserves Vietnamese diacritics)
+    if t and t[0].islower():
+        t = t[0].upper() + t[1:]
+    return t
+
+
+def _clean_summary(summary: str, engine_name: str) -> str:
+    """
+    Post-process final summary text.
+    For hybrid: clean each bullet line independently.
+    For extractive: clean each sentence.
+    """
+    if not summary.strip():
+        return summary
+
+    if engine_name == "hybrid" and "\n" in summary:
+        lines = summary.split("\n")
+        cleaned: list[str] = []
+        for line in lines:
+            stripped = line.strip()
+            if not stripped:
+                cleaned.append("")
+                continue
+            # Section headers (e.g. "Điểm cốt lõi:", "Ý chính:") — keep as-is
+            if stripped.endswith(":"):
+                cleaned.append(stripped)
+            elif stripped.startswith("- "):
+                cleaned.append("- " + _clean_sentence(stripped[2:]))
+            else:
+                cleaned.append(_clean_sentence(stripped))
+        return "\n".join(cleaned).strip()
+
+    # Extractive / ViT5: single block of text
+    return _clean_sentence(summary)
 
 
 def build_summary_response(
@@ -20,6 +67,7 @@ def build_summary_response(
         summary = parts[0]
     else:
         summary = " ".join(parts)
+    summary = _clean_summary(summary, engine_name)
     source_char_len = len(processed.cleaned_text)
     summary_char_len = len(summary)
     source_sentence_count = len(processed.sentences)

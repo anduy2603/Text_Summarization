@@ -104,7 +104,7 @@ def rank_sentences_for_bullets(
     pool_text: str = "",
     max_bullets: int,
     min_bullets: int = 0,
-    redundancy_threshold: float = 0.55,
+    redundancy_threshold: float = 0.45,
 ) -> tuple[list[str], dict[str, Any]]:
     """
     Pick standalone, topic-relevant bullets from TextRank pool (not score-only order).

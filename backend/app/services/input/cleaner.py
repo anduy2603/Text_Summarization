@@ -7,6 +7,9 @@ from app.services.input.document_line_filters import filter_document_lines
 _ZW_RE = re.compile(r"[\u200b\u200c\u200d\u2060\ufeff]")
 # Other C0 controls except tab/newline; allow \n \t for structure.
 _CTRL_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
+# News-source attribution prefix, e.g. "(D\u00e2n tr\u00ed) - ", "(VnExpress) - ", "(TTXVN) - "
+# Appears at the start of the first paragraph in Vietnamese online news articles.
+_NEWS_ATTR_RE = re.compile(r"^\([^)]{1,40}\)\s*[-\u2013]\s+", re.UNICODE)
 
 
 def _normalize_whitespace_lines(text: str) -> list[str]:
@@ -20,7 +23,11 @@ def _normalize_whitespace_lines(text: str) -> list[str]:
                 cleaned_lines.append("")
             continue
         blank_run = 0
-        cleaned_lines.append(re.sub(r"[ \t]{2,}", " ", line))
+        line = re.sub(r"[ \t]{2,}", " ", line)
+        # Strip news-source attribution prefix at start of line
+        line = _NEWS_ATTR_RE.sub("", line).strip()
+        if line:
+            cleaned_lines.append(line)
     return cleaned_lines
 
 
