@@ -23,6 +23,9 @@ _CAPTION_INLINE_RE = re.compile(
     flags=re.IGNORECASE | re.UNICODE,
 )
 
+# Bare URL lines (e.g. print-version URLs embedded in PDFs or HTML)
+_URL_LINE_RE = re.compile(r"^https?://\S+$", re.IGNORECASE)
+
 # Timestamp / publication-date lines scraped from news HTML
 # e.g. "Thứ hai, 04/05/2026 - 06:00"  "Thứ 2, 12:30 ICT"  "08/06/2026 - 14:15"
 _TIMESTAMP_RE = re.compile(
@@ -63,6 +66,9 @@ def is_junk_sentence(sentence: str) -> bool:
     if _NOISE_LINE_RE.search(text) or _CAPTION_ONLY_RE.match(text) or _METADATA_ONLY_RE.match(text):
         return True
     if _CAPTION_INLINE_RE.search(text):
+        return True
+    # Reject bare URL lines (e.g. print-version URLs embedded in PDFs)
+    if _URL_LINE_RE.match(text):
         return True
     # Reject timestamp / publication-date lines (e.g. "Thứ hai, 04/05/2026 - 06:00")
     if _TIMESTAMP_RE.match(text):

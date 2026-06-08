@@ -4,6 +4,7 @@ import re
 
 _PARAGRAPH_BREAK_RE = re.compile(r"\n{2,}")
 _SENTENCE_BOUNDARY_RE = re.compile(r"(?<=[.!?…])\s+")
+_ENDS_WITH_PUNCT_RE = re.compile(r"[.!?…]\s*$")
 
 
 def split_paragraphs(text: str) -> list[str]:
@@ -30,7 +31,13 @@ def _split_paragraph_sentences(paragraph: str) -> list[str]:
         if not part:
             continue
         if "\n" in part:
-            sentences.extend(ln.strip() for ln in part.split("\n") if ln.strip())
+            sub_lines = [ln.strip() for ln in part.split("\n") if ln.strip()]
+            # If intermediate lines have no sentence-ending punctuation they are
+            # likely a single sentence wrapped by PDF/DOCX line breaks — join them.
+            if all(not _ENDS_WITH_PUNCT_RE.search(ln) for ln in sub_lines[:-1]):
+                sentences.append(" ".join(sub_lines))
+            else:
+                sentences.extend(sub_lines)
         else:
             sentences.append(part)
     return sentences
