@@ -44,3 +44,4 @@ dependencies:
       - striprtf
       - chardet==5.2.0
       - bert-score
+      - slowapi

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import threading
 from typing import Any
 
 from app.core.config import settings
@@ -114,52 +115,60 @@ def resolve_generation_length_bounds(
 # Module-level cache — only populated on successful load; never caches failures.
 # Use _clear_vit5_runtime_cache() in tests or to force a reload after env changes.
 _vit5_runtime_cache: tuple[Any, Any, Any, Any] | None = None
+_vit5_load_lock = threading.Lock()
 
 
 def _get_vit5_runtime() -> tuple[Any, Any, Any, Any]:
     global _vit5_runtime_cache
+    # Fast path: cache already populated, no lock needed.
     if _vit5_runtime_cache is not None:
         return _vit5_runtime_cache
 
-    _check_transformers_version()
-    allow_download = os.environ.get(VIT5_ALLOW_DOWNLOAD_ENV) == "1"
-    if not allow_download:
-        _set_huggingface_offline()
+    # Slow path: acquire lock so only one thread loads the model.
+    with _vit5_load_lock:
+        # Re-check inside lock — another thread may have loaded while we waited.
+        if _vit5_runtime_cache is not None:
+            return _vit5_runtime_cache
 
-    try:
-        import torch
-    except Exception as exc:  # pragma: no cover - environment dependent
-        hint = (
-            "ViT5 engine requires `torch` and `transformers` to be installed "
-            "and importable in this environment."
-        )
-        root = exc
-        while getattr(root, "__cause__", None) is not None:
-            root = root.__cause__
-        root_msg = str(root).strip()
-        if root_msg and root_msg not in hint:
-            hint = f"{hint} Root error: {type(root).__name__}: {root_msg}"
-        raise Vit5EngineNotReadyError(hint) from exc
+        _check_transformers_version()
+        allow_download = os.environ.get(VIT5_ALLOW_DOWNLOAD_ENV) == "1"
+        if not allow_download:
+            _set_huggingface_offline()
 
-    try:
-        if allow_download:
-            tokenizer, model = _load_vit5_online()
-        else:
-            tokenizer, model = _load_vit5_from_cache()
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        model.to(device)
-        model.eval()
-    except Exception as exc:  # pragma: no cover - environment dependent
-        download_hint = (
-            f"Set {VIT5_ALLOW_DOWNLOAD_ENV}=1 to allow a one-time HuggingFace download "
-            "when internet access is available."
-        )
-        raise Vit5EngineNotReadyError(
-            f"Unable to load ViT5 model '{settings.vit5_model_name}'. "
-            f"Check local HuggingFace cache. {download_hint}"
-        ) from exc
+        try:
+            import torch
+        except Exception as exc:  # pragma: no cover - environment dependent
+            hint = (
+                "ViT5 engine requires `torch` and `transformers` to be installed "
+                "and importable in this environment."
+            )
+            root = exc
+            while getattr(root, "__cause__", None) is not None:
+                root = root.__cause__
+            root_msg = str(root).strip()
+            if root_msg and root_msg not in hint:
+                hint = f"{hint} Root error: {type(root).__name__}: {root_msg}"
+            raise Vit5EngineNotReadyError(hint) from exc
 
-    _vit5_runtime_cache = (tokenizer, model, torch, device)
+        try:
+            if allow_download:
+                tokenizer, model = _load_vit5_online()
+            else:
+                tokenizer, model = _load_vit5_from_cache()
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            model.to(device)
+            model.eval()
+        except Exception as exc:  # pragma: no cover - environment dependent
+            download_hint = (
+                f"Set {VIT5_ALLOW_DOWNLOAD_ENV}=1 to allow a one-time HuggingFace download "
+                "when internet access is available."
+            )
+            raise Vit5EngineNotReadyError(
+                f"Unable to load ViT5 model '{settings.vit5_model_name}'. "
+                f"Check local HuggingFace cache. {download_hint}"
+            ) from exc
+
+        _vit5_runtime_cache = (tokenizer, model, torch, device)
     return _vit5_runtime_cache
 
 

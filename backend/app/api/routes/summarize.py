@@ -5,7 +5,7 @@ import io
 import re
 from typing import Optional
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile
 from fastapi.responses import Response
 
 from app.core.config import settings
@@ -24,6 +24,7 @@ from app.services.summarization import (
     summarize_processed_input,
 )
 from app.services.summarization.summary_service import SummaryEngineNotReadyError, UnsupportedSummaryEngineError
+from app.core.rate_limit import limiter
 
 router = APIRouter()
 
@@ -79,17 +80,19 @@ async def list_engines() -> dict[str, object]:
 
 
 @router.post("/summarize", response_model=SummarizeResponse)
-async def summarize(payload: SummarizeRequest) -> SummarizeResponse:
+@limiter.limit("10/minute")
+async def summarize(request: Request, payload: SummarizeRequest) -> SummarizeResponse:
     try:
-        processed = process_from_text(payload.text)
+        processed = await asyncio.to_thread(process_from_text, payload.text)
     except (InputValidationError, InputLoadError) as exc:
         raise _map_input_errors(exc) from exc
     try:
-        return summarize_processed_input(
+        return await asyncio.to_thread(
+            summarize_processed_input,
             processed,
-            max_sentences=payload.max_sentences,
-            ratio=payload.ratio,
-            engine_name=payload.engine,
+            payload.max_sentences,
+            payload.ratio,
+            payload.engine,
         )
     except SummaryEngineNotReadyError as exc:
         raise HTTPException(status_code=501, detail=str(exc)) from exc
@@ -98,21 +101,24 @@ async def summarize(payload: SummarizeRequest) -> SummarizeResponse:
 
 
 @router.post("/summarize/file", response_model=SummarizeResponse)
+@limiter.limit("10/minute")
 async def summarize_file(
+    request: Request,
     file: UploadFile = File(...),
     controls: SummaryControls = Depends(_summary_controls_from_query),
 ) -> SummarizeResponse:
     content = await file.read()
     try:
-        processed = process_from_bytes(file.filename or "", content)
+        processed = await asyncio.to_thread(process_from_bytes, file.filename or "", content)
     except (InputValidationError, InputLoadError) as exc:
         raise _map_input_errors(exc) from exc
     try:
-        return summarize_processed_input(
+        return await asyncio.to_thread(
+            summarize_processed_input,
             processed,
-            max_sentences=controls.max_sentences,
-            ratio=controls.ratio,
-            engine_name=controls.engine,
+            controls.max_sentences,
+            controls.ratio,
+            controls.engine,
         )
     except SummaryEngineNotReadyError as exc:
         raise HTTPException(status_code=501, detail=str(exc)) from exc
@@ -121,7 +127,9 @@ async def summarize_file(
 
 
 @router.post("/summarize/url", response_model=SummarizeResponse)
+@limiter.limit("10/minute")
 async def summarize_url(
+    request: Request,
     payload: UrlIngestRequest,
     controls: SummaryControls = Depends(_summary_controls_from_query),
 ) -> SummarizeResponse:
@@ -130,11 +138,12 @@ async def summarize_url(
     except (InputValidationError, InputLoadError) as exc:
         raise _map_input_errors(exc) from exc
     try:
-        return summarize_processed_input(
+        return await asyncio.to_thread(
+            summarize_processed_input,
             processed,
-            max_sentences=controls.max_sentences,
-            ratio=controls.ratio,
-            engine_name=controls.engine,
+            controls.max_sentences,
+            controls.ratio,
+            controls.engine,
         )
     except SummaryEngineNotReadyError as exc:
         raise HTTPException(status_code=501, detail=str(exc)) from exc
