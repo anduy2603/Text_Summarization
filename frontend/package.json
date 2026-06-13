@@ -9,6 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fontsource-variable/plus-jakarta-sans": "^5.2.8",
+    "material-symbols": "^0.45.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

@@ -26,7 +26,7 @@
   --color-outline: #9ca3af;
   --color-outline-variant: #e5e7eb;
   --color-error: #b91c1c;
-  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", system-ui, sans-serif;
 }
 
 @layer base {
