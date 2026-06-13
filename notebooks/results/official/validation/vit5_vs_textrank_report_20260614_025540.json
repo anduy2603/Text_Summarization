@@ -1,0 +1,45 @@
+{
+  "report_schema_version": "abstractive_vs_extractive_v1",
+  "script": "scripts/benchmark_abstractive_vit5.py",
+  "protocol_version": "phase0_v2",
+  "target_split": "validation",
+  "seed": 42,
+  "subset_limit": 200,
+  "article_char_threshold": 1200,
+  "max_sentences": 2,
+  "extractive_baseline_engine": "textrank",
+  "abstractive_engine": "vit5",
+  "manifest_path": "D:\\Text_Summarization\\data\\processed\\vietnews\\dataset_manifest.json",
+  "split_path": "D:\\Text_Summarization\\data\\processed\\vietnews\\validation.jsonl",
+  "summary_by_engine": [
+    {
+      "engine": "textrank",
+      "n": 200,
+      "rouge1_f": 0.5381915087648449,
+      "rouge2_f": 0.2355521990717045,
+      "rougeL_f": 0.32056114425495624,
+      "summarizer_core_latency_sec": 0.0030419709995476297,
+      "compression_ratio": 0.12842480650530508,
+      "repetition_rate": 0.0099702480407976
+    },
+    {
+      "engine": "vit5",
+      "n": 200,
+      "rouge1_f": 0.5863356013062725,
+      "rouge2_f": 0.2596379629113591,
+      "rougeL_f": 0.3646649922630726,
+      "summarizer_core_latency_sec": 3.0172575465004776,
+      "compression_ratio": 0.06556310905126474,
+      "repetition_rate": 0.006200738736846608
+    }
+  ],
+  "environment": {
+    "python_version": "3.10.20",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "git_commit": "635d5b0516ce63348e7d94c436e67f0402f4fc72",
+    "git_dirty": true,
+    "rouge_score_version": "0.1.2",
+    "transformers_version": "4.46.3"
+  },
+  "detail_csv": "notebooks\\results\\official\\validation\\vit5_vs_textrank_detail_20260614_025540.csv"
+}

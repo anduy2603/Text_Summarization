@@ -1,0 +1,81 @@
+{
+  "report_schema_version": "test_set_benchmark_v1",
+  "script": "scripts/benchmark_test_set.py",
+  "protocol_version": "phase0_v2",
+  "target_split": "test",
+  "seed": 42,
+  "subset_limit": 200,
+  "actual_n": 200,
+  "article_char_threshold": 1200,
+  "max_sentences": 2,
+  "engines": [
+    "tfidf",
+    "textrank",
+    "phobert-extractive",
+    "vit5",
+    "hybrid"
+  ],
+  "manifest_path": "D:\\Text_Summarization\\data\\processed\\vietnews\\dataset_manifest.json",
+  "split_path": "D:\\Text_Summarization\\data\\processed\\vietnews\\test.jsonl",
+  "summary_by_engine": [
+    {
+      "engine": "hybrid",
+      "n": 200,
+      "rouge1_f": 0.5228689888532317,
+      "rouge2_f": 0.22860751698194726,
+      "rougeL_f": 0.31750615650178,
+      "summarizer_core_latency_sec": 2.2151334990008036,
+      "compression_ratio": 0.15714279332275738,
+      "repetition_rate": 0.017922710052258217
+    },
+    {
+      "engine": "phobert-extractive",
+      "n": 200,
+      "rouge1_f": 0.4777104562210701,
+      "rouge2_f": 0.21209650610761824,
+      "rougeL_f": 0.2945049927608395,
+      "summarizer_core_latency_sec": 0.43572473049993277,
+      "compression_ratio": 0.1845116673772075,
+      "repetition_rate": 0.038132805785296646
+    },
+    {
+      "engine": "textrank",
+      "n": 200,
+      "rouge1_f": 0.5393061923710747,
+      "rouge2_f": 0.23927697343699106,
+      "rougeL_f": 0.3270597934815493,
+      "summarizer_core_latency_sec": 0.0025269744998513487,
+      "compression_ratio": 0.1407377220067281,
+      "repetition_rate": 0.013045561099636225
+    },
+    {
+      "engine": "tfidf",
+      "n": 200,
+      "rouge1_f": 0.4826605480614105,
+      "rouge2_f": 0.1326306509660686,
+      "rougeL_f": 0.27089627991751386,
+      "summarizer_core_latency_sec": 0.00040179250012442933,
+      "compression_ratio": 0.12544920298751938,
+      "repetition_rate": 0.010144265186283126
+    },
+    {
+      "engine": "vit5",
+      "n": 200,
+      "rouge1_f": 0.5891557864650381,
+      "rouge2_f": 0.2666832466747909,
+      "rougeL_f": 0.3808594772879735,
+      "summarizer_core_latency_sec": 2.871199480000214,
+      "compression_ratio": 0.06740631386572495,
+      "repetition_rate": 0.0034757344966410454
+    }
+  ],
+  "environment": {
+    "python_version": "3.10.20",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "git_commit": "635d5b0516ce63348e7d94c436e67f0402f4fc72",
+    "git_dirty": true,
+    "rouge_score_version": "0.1.2",
+    "transformers_version": "4.46.3"
+  },
+  "detail_csv": "D:\\Text_Summarization\\notebooks\\results\\official\\test\\test_set_detail_20260614_031519.csv"
+}
